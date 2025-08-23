@@ -3,40 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Webpage</title>
+    <title>The Lawless Directory - Find It Here. Not Everywhere.</title>
+    <meta name="description" content="Discover local businesses in your area. The modern business directory that connects communities.">
+    
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <nav>
-            <h1>My Website</h1>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
+    <!-- Animated gradient background -->
+    <div class="gradient-bg"></div>
+    
+    <!-- Enhanced header with search -->
+    <header class="header-glass">
+        <nav class="nav-container">
+            <div class="nav-brand">
+                <h1>The Lawless Directory</h1>
+                <span class="tagline">Find it here. Not everywhere.</span>
+            </div>
+            
+            <!-- Central search bar -->
+            <div class="search-container">
+                <input type="search" placeholder="Search businesses, services, or locations..." class="search-input" autocomplete="off">
+                <button class="search-btn">🔍</button>
+                <div class="search-suggestions"></div>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="btn-cta">List Your Business</button>
+                <button class="btn-ghost">Sign In</button>
+            </div>
         </nav>
+        
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <div class="filter-chips">
+                <button class="filter-chip active">All</button>
+                <button class="filter-chip">Restaurants</button>
+                <button class="filter-chip">Health & Beauty</button>
+                <button class="filter-chip">Auto Services</button>
+                <button class="filter-chip">Professional Services</button>
+                <button class="filter-chip">Shopping</button>
+                <button class="filter-chip">Home Services</button>
+            </div>
+        </div>
     </header>
 
-    <main>
-        <section id="home">
-            <h2>Welcome</h2>
-            <p>This is your new webpage project. Start building something amazing!</p>
-        </section>
+    <main class="main-container">
+        <!-- Split view layout -->
+        <div class="split-view">
+            <section class="listings-panel">
+                <div class="listings-header">
+                    <h2>127 Businesses Near You</h2>
+                    <div class="view-controls">
+                        <select class="sort-select">
+                            <option>Recommended</option>
+                            <option>Distance</option>
+                            <option>Rating</option>
+                            <option>Most Reviews</option>
+                        </select>
+                        <div class="view-toggle">
+                            <button class="view-btn active">📋</button>
+                            <button class="view-btn">🗺️</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="business-grid">
+                    <!-- Business cards -->
+                    <div class="business-card premium" data-delay="0">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=250&fit=crop" alt="Cozy Downtown Café" loading="lazy">
+                            <span class="premium-badge">⭐ PREMIUM</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-text">4.9 (127 reviews)</span>
+                            </div>
+                            <h3>Cozy Downtown Café</h3>
+                            <p class="category">Coffee Shop • $$ • 0.2 mi away</p>
+                            <p class="description">Artisan coffee and fresh pastries in a warm, welcoming atmosphere...</p>
+                            <div class="trust-indicators">
+                                <span class="trust-badge">✓ Verified</span>
+                                <span class="trust-badge">🏆 Top Rated</span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="action-btn">📞 Call</button>
+                                <button class="action-btn">🌐 Website</button>
+                                <button class="action-btn primary">📍 Directions</button>
+                            </div>
+                        </div>
+                    </div>
 
-        <section id="about">
-            <h2>About</h2>
-            <p>Add your content here.</p>
-        </section>
+                    <div class="business-card" data-delay="50">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1562967916-eb82221dfb92?w=400&h=250&fit=crop" alt="Elite Auto Repair" loading="lazy">
+                        </div>
+                        <div class="card-content">
+                            <div class="rating">
+                                <span class="stars">★★★★☆</span>
+                                <span class="rating-text">4.6 (89 reviews)</span>
+                            </div>
+                            <h3>Elite Auto Repair</h3>
+                            <p class="category">Auto Service • $$$ • 1.3 mi away</p>
+                            <p class="description">Complete automotive service with 20+ years experience...</p>
+                            <div class="trust-indicators">
+                                <span class="trust-badge">✓ Verified</span>
+                                <span class="trust-badge">📍 Local Business</span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="action-btn">📞 Call</button>
+                                <button class="action-btn">🌐 Website</button>
+                                <button class="action-btn primary">📍 Directions</button>
+                            </div>
+                        </div>
+                    </div>
 
-        <section id="contact">
-            <h2>Contact</h2>
-            <p>Get in touch with us.</p>
-        </section>
+                    <div class="business-card" data-delay="100">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=250&fit=crop" alt="Bella's Italian Kitchen" loading="lazy">
+                        </div>
+                        <div class="card-content">
+                            <div class="rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-text">4.8 (203 reviews)</span>
+                            </div>
+                            <h3>Bella's Italian Kitchen</h3>
+                            <p class="category">Italian Restaurant • $$$ • 0.8 mi away</p>
+                            <p class="description">Authentic Italian cuisine with fresh ingredients and family recipes...</p>
+                            <div class="trust-indicators">
+                                <span class="trust-badge">✓ Verified</span>
+                                <span class="trust-badge">👨‍👩‍👧‍👦 Family Owned</span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="action-btn">📞 Call</button>
+                                <button class="action-btn">🌐 Menu</button>
+                                <button class="action-btn primary">📍 Directions</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading skeleton for additional cards -->
+                    <div class="business-card skeleton-card" data-delay="150">
+                        <div class="skeleton skeleton-image"></div>
+                        <div class="card-content">
+                            <div class="skeleton skeleton-text-long"></div>
+                            <div class="skeleton skeleton-text-medium"></div>
+                            <div class="skeleton skeleton-text-short"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="map-panel">
+                <div id="map" class="interactive-map">
+                    <div class="map-placeholder">
+                        <h3>🗺️ Interactive Map</h3>
+                        <p>Business locations will appear here</p>
+                        <p class="map-note">Map integration coming soon</p>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
-    <footer>
-        <p>&copy; 2024 My Website. All rights reserved.</p>
+    <footer class="footer-modern">
+        <!-- Trust indicators -->
+        <div class="trust-bar">
+            <div class="trust-stat">
+                <strong>2.5K+</strong>
+                <span>Businesses</span>
+            </div>
+            <div class="trust-stat">
+                <strong>10K+</strong>
+                <span>Reviews</span>
+            </div>
+            <div class="trust-stat">
+                <strong>50K+</strong>
+                <span>Monthly Users</span>
+            </div>
+            <div class="trust-stat">
+                <strong>98%</strong>
+                <span>Satisfaction</span>
+            </div>
+        </div>
+        
+        <!-- Footer navigation -->
+        <nav class="footer-nav">
+            <div class="footer-section">
+                <h4>For Businesses</h4>
+                <a href="#advertise">Advertise</a>
+                <a href="#business-app">Business App</a>
+                <a href="#support">Support</a>
+            </div>
+            <div class="footer-section">
+                <h4>Discover</h4>
+                <a href="#categories">Categories</a>
+                <a href="#collections">Collections</a>
+                <a href="#events">Events</a>
+            </div>
+            <div class="footer-section">
+                <h4>The Lawless Directory</h4>
+                <a href="#about">About</a>
+                <a href="#careers">Careers</a>
+                <a href="#press">Press</a>
+                <a href="#terms">Terms</a>
+                <a href="#privacy">Privacy</a>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <a href="#blog">Blog</a>
+                <a href="#twitter">Twitter</a>
+                <a href="#facebook">Facebook</a>
+                <a href="#instagram">Instagram</a>
+            </div>
+        </nav>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2024 The Lawless Directory. All rights reserved.</p>
+            <p class="footer-tagline">Building trust in local business discovery.</p>
+        </div>
     </footer>
 
     <script src="script.js"></script>
