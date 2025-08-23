@@ -1,0 +1,23 @@
+
+  Execute this workflow systematically, providing status updates at each phase. If any step fails, stop immediately and provide clear guidance for manual resolution.
+
+  Important: Always run git commands individually and check their exit status before proceeding to the next step.
+
+  ## **Usage Example**
+
+  When a user runs `/commitsync`, Claude will:
+
+  1. **Assess current state**: Check branch, uncommitted changes, remote status
+  2. **Commit everything**: Stage all changes with a descriptive auto-generated message
+  3. **Sync with remote**: Push current branch and pull any remote changes
+  4. **Merge to main**: If on feature branch, safely merge to main and push
+  5. **Verify completion**: Confirm all operations succeeded and repository is clean
+
+  ## **Advanced Features**
+
+  The command includes:
+  - **Automatic conflict detection** and safe handling
+  - **Branch protection awareness** (won't force-push to protected branches)
+  - **Descriptive commit messages** following your project's conventions
+  - **Clean branch management** with optional feature branch cleanup
+  - **Comprehensive error reporting** with recovery guidance
