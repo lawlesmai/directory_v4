@@ -1,0 +1,88 @@
+Colors.txt
+
+# The Lawless Directory Color Palette
+
+**Document Information**
+- **Date**: 2025-07-28
+- **Version**: 1.0
+- **Source**: Design reference materials from planning phase
+- **Status**: ✅ Validated by BMAD Orchestrator
+
+---
+
+## Brand Color Palette
+
+### Primary Colors
+
+The following 10-color palette has been selected for The Lawless Directory brand identity:
+
+| Color Name | Hex Code | Usage | Description |
+|------------|----------|-------|-------------|  
+| **Dark Navy** | `#001219` | Background, headers | Deep, sophisticated primary background |
+| **Ocean Teal 1** | `#005F73` | Secondary backgrounds, borders | Professional, trustworthy accent |
+| **Ocean Teal 2** | `#0A9396` | Interactive elements, links | Approachable secondary accent |
+| **Sage Green** | `#94D2BD` | Success states, highlights | Fresh, positive feedback color |
+| **Warm Cream** | `#E9D8A6` | Primary text, readable content | High contrast, accessible text |
+| **Golden Orange 1** | `#EE9B00` | Primary CTAs, accent elements | Energetic, attention-grabbing |
+| **Golden Orange 2** | `#CA6702` | Hover states, secondary CTAs | Deeper action state |
+| **Warm Red 1** | `#BB3E03` | Warnings, important alerts | Clear feedback color |
+| **Warm Red 2** | `#AE2012` | Error states, urgent actions | Strong negative feedback |
+| **Warm Red 3** | `#9B2226` | Critical states, delete actions | Final warning/danger state |
+
+### Color Application Strategy
+
+**Background Hierarchy:**
+- Primary: Dark Navy (`#001219`)
+- Secondary: Ocean Teal 1 (`#005F73`)
+- Accents: Ocean Teal 2 (`#0A9396`)
+
+**Text Hierarchy:**
+- Primary: Warm Cream (`#E9D8A6`)
+- Secondary: Sage Green (`#94D2BD`)
+- Accents: Golden Orange 1 (`#EE9B00`)
+
+**Interactive Elements:**
+- Primary CTAs: Golden Orange 1 (`#EE9B00`)
+- Secondary Actions: Ocean Teal 2 (`#0A9396`)
+- Hover States: Golden Orange 2 (`#CA6702`)
+
+**Feedback Colors:**
+- Success: Sage Green (`#94D2BD`)
+- Warning: Warm Red 1 (`#BB3E03`)
+- Error: Warm Red 2 (`#AE2012`)
+- Critical: Warm Red 3 (`#9B2226`)
+
+### Design Principles
+
+This color palette achieves the following design goals from the UX specification:
+
+✅ **Modern & Edgy**: Sophisticated dark palette with warm accents
+✅ **Trustworthy**: Professional blues and teals build confidence
+✅ **Approachable**: Warm creams and golds create welcoming feel
+✅ **Avoid "Elementary"**: No primary colors or simplistic schemes
+✅ **High Contrast**: Excellent accessibility compliance potential
+
+### Implementation Notes
+
+**CSS Custom Properties Structure:**
+```css
+:root {
+  --color-navy-dark: #001219;
+  --color-teal-primary: #005F73;
+  --color-teal-secondary: #0A9396;
+  --color-sage: #94D2BD;
+  --color-cream: #E9D8A6;
+  --color-gold-primary: #EE9B00;
+  --color-gold-secondary: #CA6702;
+  --color-red-warning: #BB3E03;
+  --color-red-error: #AE2012;
+  --color-red-critical: #9B2226;
+}
+```
+
+**Tailwind CSS Integration:**
+These colors should be integrated into the Tailwind configuration as custom color tokens to maintain design system consistency across all components.
+
+---
+
+*✅ This color palette perfectly aligns with the UX Expert's vision of "modern and edgy without being intimidating" and provides excellent foundation for accessible, trustworthy directory platform design.*

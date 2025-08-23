@@ -1,0 +1,28 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.local
+.env.*.local
+dist/
+coverage/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+.tmp/
+.cache/

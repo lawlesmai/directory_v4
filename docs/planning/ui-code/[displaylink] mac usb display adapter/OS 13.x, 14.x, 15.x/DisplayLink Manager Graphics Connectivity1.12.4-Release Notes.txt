@@ -1,0 +1,189 @@
+=============================================================================
+=============================================================================
+
+        DisplayLink macOS Application Release Note
+
+Version: 1.12.4
+Build: da9a4ff56bf (90)
+
+Date: 10th June 2025
+
+=============================================================================
+=============================================================================
+
+
+A. Introduction
+===============
+
+This is DisplayLink Manager macOS app 1.12.4 release.
+Details about this app can be found in our FAQ: https://support.displaylink.com/knowledgebase/articles/1932214
+This version supports macOS versions 13.5, 14.x and 15.x. See section D for details.
+
+A full list of known issues can be found in the "Known issues and limitations" section below.
+
+B. Contents
+===========
+
+A.  Introduction
+B.  Contents
+C.  Changes in this release
+C.1 Changes since 1.10.0 release
+D.  Supported operating systems
+E.  Language support
+F.  Supported hardware
+G.  Operating system limitations
+H.  Known issues and limitations
+I.  Third-party component libraries
+
+C Changes in this release
+=========================
+
+- [DL-7xxx] Resolved an issue where certain monitors could intermittently blink during normal operation (VIFR-6380).
+- [DL-7xxx] Fixed a problem causing monitors to blink while the macOS screen saver was active (VIFR-6411).
+- [DL-7xxx] Addressed an issue preventing some monitors from being activated (VIFR-6412).
+
+C.1 Changes since 1.10.0 release
+================================
+
+Changes in 1.12.3
+-----------------
+- Fixed occasional app crashes occurring after device plug-in (VIFR-5867, VIFR-6040, VIFR-6325).
+- [DL-7xxx] Resolved issue where 4Kp60 mode was missing on certain DisplayPort monitors (VIFR-6067).
+- [DL-7xxx] Improved audio playback smoothness on some HDMI-connected displays (VIFR-6214).
+- [DL-7xxx] Fixed display output issue when switching multiple monitors from extended desktop to duplicate mode (VIFR-6282).
+
+Changes in 1.12.2
+-----------------
+- Fixed incorrectly set up or blank monitors after resuming from sleep when a dock is connected to a Mac during sleep (VIFR-5802).
+- [DL-7xxx] Fixed occasional blank HDMI monitor after dock reconnection (VIFR-5820).
+- [DL-7xxx] Fixed inability to set up 4K 144 Hz mode on some monitors using DP (DSC) output (VIFR-5862).
+- [DL-7xxx] Prevented unexpected splash screen from briefly appearing during machine reboot (VIFR-5982, VIFR-6138).
+- [DL-7xxx] Fixed unexpectedly appearing splash screen while Mac is in sleep (VIFR-6059, VIFR-6120).
+
+Changes in 1.12.1
+-----------------
+- DisplayLink Manager UI now allows modification of brightness and contrast for displays connected to a DisplayLink device.
+- Fixed occasional screen artifacts after resuming from sleep (VIFR-5286).
+- Fixed erratic screen corruption when changing resolution (VIFR-5337).
+- Fixed inability to extend the desktop to more than one screen with certain monitors (VIFR-5881).
+
+Changes in 1.12.0
+-----------------
+- Refreshed DisplayLink Manager UI
+- DisplayLink screen rotation setting now available in System Settings
+- Fixed issues with cursor updates not being smooth on high refresh rate displays (VIFR-5790).
+- [DL-7xxx] Fixed occasional DisplayLinkUserAgent crash after device plug in (VIFR-5299).
+- [DL-7xxx] Fixed occasional blank USB-C monitor after device plug in (VIFR-5673).
+- Fixed blank screen after display resolution change (VIFR-5136, VIFR-5298).
+- Fixed blank screens issue after resuming Mac from sleep (VIFR-5429).
+
+Changes in 1.11.0
+-----------------
+- New features for DL-7xxx series
+- [DL-7xxx] Added support for new DL-7200 products.
+- [DL-7xxx] Fixed Ethernet connection dropping on macOS 15.x Sequoia (VIFR-4891).
+- [DL-7xxx] Fixed DLM not responding after rotation change with 4 screens connected (VIFR-4670).
+- [DL-7xxx] Fixed some monitors not getting EDID on HDMI, resulting in wrong resolution (VIFR-4762).
+- [DL-7xxx] Fixed preferring 4kp30 instead of 4kp60 upon first connection (VIFR-4712).
+- [DL-7xxx] Fixed inability to light up LG 34WK95UP monitor (VIFR-5046).
+- Added warning explaining the reason of disabling screens when system stops them due to low disk space (PS-3571).
+- Fixed crashing DisplayLink Manager when EDID contains incorrect characters in string descriptors (PS-2213).
+- Fixed occasional blank screen on resume (VIFR-5038).
+- Fixed issue with resuming Mac in clamshell mode (VIFR-4758).
+
+Changes in 1.10.3
+-----------------
+- DL-7xxx series: fixed incorrectly showing 4Kp120 mode on HDMI (VIFR-4821).
+- Removed unnecessary warning from GUI on desktop Mac machines (VIFR-4657).
+- Improved video performance when using HDMI connection on some monitors (VIFR-4834).
+- Fixed incorrect 4K and 144Hz image display on some monitors (VIFR-4803).
+- Fixed post-installation script for Jamf Pro (VIFR-4696).
+
+Changes in 1.10.2
+-----------------
+- Fixed incorrect settings state causing application to crash (VIFR-4534).
+- Fixed application causing WindowServer to crash (VIFR-4518).
+- Fixed external screens freezing when screen sharing with Zoom (VIFR-4659).
+- Various stability improvements.
+
+Changes in 1.10.1
+-----------------
+- DL-7xxx series: added HDMI & DP++ support.
+- Fixed crashing application in different scenarios (PS-3210, VIFR-3992).
+- Fixed incorrectly working Accessibility Zoom feature (VIFR-4074).
+- Fixed monitor may remain blank until content is refreshed (PS-3442).
+- Fixed display issue on some monitors with color-temperature enabled (VIFR-3988).
+- Improved memory management (PS-2991).
+
+Changes in 1.10.0
+-----------------
+- Support for macOS 14.x (Sonoma)
+- Support for color-temperature control for DisplayLink DL-7xxx - compatible with 3rd-party tool f.lux 
+- Minor performance improvements vs release 1.9.0
+- From 1.10 Alpha only: Fixed application could crash on screen start (PS-2990)
+- From 1.10 Alpha only: Fixed login extension (PS-2903, PS-3047)
+- DL-6xxx series: Monitor may stay blank screen after PC resume from sleep. (VIFR-3518, VIFR-3500)
+- DL-6xxx series: Improved blanking of monitors on USB disconnect. (VIFR-2967)
+- DL-3xxx/DL-5xxx series: some monitors may remain blank if 2560x1440 video mode selected. (VIFR-2944)
+
+D. Supported operating systems
+==============================
+
+The DisplayLink macOS application can be installed on Apple Mac computers running OS version:
+ - macOS Ventura 13
+ - macOS Sonoma 14
+ - macOS Sequoia 15
+
+Older versions of our drivers are available from our website:
+https://www.synaptics.com/products/displaylink-graphics/downloads/macos
+
+
+E. Language support
+===================
+
+The DisplayLink macOS application is only available in English.
+
+
+F. Supported hardware
+=====================
+
+DisplayLink IC series supported:
+- DL-7xxx
+- DL-6xxx
+- DL-5xxx
+- DL-41xx
+- DL-3xxx
+- DL-1x5
+
+
+G. Operating system limitations
+===============================
+
+Protected content from iTunes and other players is not visible on built-in graphics when DisplayLink screens are connected. (17087)
+
+The list of available resolutions and the default resolution for 4K displays depends on the type of connection (HDMI or DisplayPort). To see a more complete list of resolutions follow these steps:
+- Open the Displays preference in System Preferences
+- Go to the preferences panel for the DisplayLink screen
+- While keeping the option (alt) key pressed, select the "Scaled" option for the list of resolutions.
+
+Manual Ethernet speed setting is not retained across reboots. (20973)
+
+Since macOS Ventura 13, USB Restricted Mode protection is enabled by default on Apple Silicon MacBooks. 
+This requires users to explicitly allow new USB peripherals, including products using DisplayLink technology.
+
+H. Known issues and limitations
+===============================
+
+- An updated list of troubleshooting suggestions is available at http://support.displaylink.com/knowledgebase/topics/80209
+- It is not possible to unlock the MacBook via Apple Watch when screen saver is running/enabled
+- Some resolutions, especially HiDPI/ Retina ones, may be missing on Apple Mx products (29526)
+
+I. Third-party component libraries
+==================================
+
+The following 3rd-party libraries are included in this release:
+ - boost				1.87.0 - Boost Software License 1.0
+ - mbedTLS				3.6.3 - Apache 2.0 license
+ - mbedTLS				3.6.2 - Apache 2.0 license (device firmware)
+ - tinyxml2				11.0.0 - Zlib license
+ - JSON for Modern C++			3.11.3 - MIT License

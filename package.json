@@ -1,0 +1,29 @@
+{
+  "name": "webpage-project",
+  "version": "1.0.0",
+  "description": "A modern webpage project",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx live-server --port=3000",
+    "test": "jest",
+    "build": "echo 'Build completed - static files ready for deployment'"
+  },
+  "devDependencies": {
+    "eslint": "^9.32.0",
+    "jest": "^30.0.5",
+    "live-server": "^1.2.2"
+  },
+  "keywords": [
+    "webpage",
+    "html",
+    "css",
+    "javascript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@jpisnice/shadcn-ui-mcp-server": "^1.1.0",
+    "@playwright/mcp": "^0.0.34",
+    "mcp-jest": "^1.0.13"
+  }
+}
