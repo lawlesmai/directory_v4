@@ -26,3 +26,15 @@ pids
 # Temporary files
 .tmp/
 .cache/
+
+# Large binary files
+*.dmg
+*.zip
+*.app/
+*.exe
+*.msi
+
+# Documentation with large files
+docs/planning/ui-code/Visual Studio Code.app/
+docs/planning/ui-code/*.dmg
+docs/planning/ui-code/*.zip
