@@ -147,7 +147,7 @@ body {
   margin: 0 auto;
   padding: var(--space-lg) var(--space-xl);
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: minmax(200px, 0.8fr) 3fr minmax(250px, 0.8fr);
   align-items: center;
   gap: var(--space-xl);
 }
@@ -169,7 +169,7 @@ body {
 /* ===== SEARCH BAR ===== */
 .search-container {
   position: relative;
-  max-width: 700px;
+  max-width: 900px;
   margin: 0 auto;
 }
 

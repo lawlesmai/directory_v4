@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Changes Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { padding: 20px; }
+        .test-container { 
+            background: #f0f0f0; 
+            padding: 20px; 
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .measurement {
+            background: rgba(255,0,0,0.2);
+            border: 2px dashed red;
+            position: relative;
+            margin: 10px 0;
+        }
+        .measurement::after {
+            content: "Height: " attr(data-height);
+            position: absolute;
+            right: -150px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: yellow;
+            padding: 5px;
+            font-size: 14px;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-bg"></div>
+    
+    <h1>UI Changes Test - Search Bar vs Button Height Comparison</h1>
+    
+    <div class="test-container">
+        <h2>Search Bar (Updated)</h2>
+        <div class="measurement" id="search-measurement">
+            <div class="search-container">
+                <input type="search" placeholder="Search businesses, services, or locations..." class="search-input">
+                <button class="search-btn">🔍</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>"List Your Business" Button</h2>
+        <div class="measurement" id="button-measurement">
+            <button class="btn-cta">List Your Business</button>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Side by Side Comparison</h2>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="search-container" style="flex: 1;">
+                <input type="search" placeholder="Search..." class="search-input">
+                <button class="search-btn">🔍</button>
+            </div>
+            <button class="btn-cta">List Your Business</button>
+        </div>
+    </div>
+    
+    <script>
+        window.onload = function() {
+            const searchEl = document.querySelector('.search-input');
+            const buttonEl = document.querySelector('.btn-cta');
+            
+            const searchHeight = searchEl.offsetHeight;
+            const buttonHeight = buttonEl.offsetHeight;
+            
+            document.getElementById('search-measurement').setAttribute('data-height', searchHeight + 'px');
+            document.getElementById('button-measurement').setAttribute('data-height', buttonHeight + 'px');
+            
+            console.log('Search bar height:', searchHeight + 'px');
+            console.log('Button height:', buttonHeight + 'px');
+            console.log('Difference:', Math.abs(searchHeight - buttonHeight) + 'px');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Bar Width Test - The Lawless Directory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Test overlay to show the changes */
+        .test-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            z-index: 9999;
+            max-width: 300px;
+        }
+        .test-info h3 {
+            margin: 0 0 10px 0;
+            color: #EE9B00;
+        }
+        .test-info p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        .highlight-search {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(238, 155, 0, 0.4); }
+            50% { box-shadow: 0 0 20px 10px rgba(238, 155, 0, 0.2); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Test info panel -->
+    <div class="test-info">
+        <h3>Search Bar Update Test</h3>
+        <p><strong>Previous:</strong> max-width: 700px</p>
+        <p><strong>New:</strong> max-width: 900px</p>
+        <p><strong>Grid:</strong> Adjusted to 3fr center</p>
+        <p>The search bar now utilizes more horizontal space while maintaining visual balance.</p>
+    </div>
+
+    <!-- Animated gradient background -->
+    <div class="gradient-bg"></div>
+    
+    <!-- Enhanced header with search -->
+    <header class="header-glass">
+        <nav class="nav-container">
+            <div class="nav-brand">
+                <h1>The Lawless Directory</h1>
+                <span class="tagline">Find it here. Not everywhere.</span>
+            </div>
+            
+            <!-- Central search bar with highlight -->
+            <div class="search-container highlight-search">
+                <input type="search" placeholder="Search businesses, services, or locations..." class="search-input" autocomplete="off">
+                <button class="search-btn">🔍</button>
+                <div class="search-suggestions"></div>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="btn-cta">List Your Business</button>
+                <button class="btn-ghost">Sign In</button>
+            </div>
+        </nav>
+        
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <div class="filter-chips">
+                <button class="filter-chip active">All</button>
+                <button class="filter-chip">Restaurants</button>
+                <button class="filter-chip">Health & Beauty</button>
+                <button class="filter-chip">Auto Services</button>
+                <button class="filter-chip">Professional Services</button>
+                <button class="filter-chip">Shopping</button>
+                <button class="filter-chip">Home Services</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div style="padding: 40px; text-align: center; color: var(--color-cream);">
+            <h2 style="margin-bottom: 20px;">Search Bar Width Comparison</h2>
+            <div style="max-width: 1200px; margin: 0 auto; padding: 20px; background: rgba(0, 95, 115, 0.2); border-radius: 12px;">
+                <h3 style="color: var(--color-gold-primary); margin-bottom: 15px;">Changes Applied:</h3>
+                <ul style="text-align: left; display: inline-block; list-style: none; padding: 0;">
+                    <li style="margin: 10px 0;">✅ Search bar max-width increased from 700px to 900px (+200px)</li>
+                    <li style="margin: 10px 0;">✅ Navigation grid adjusted: center column now takes 3fr (was 2fr)</li>
+                    <li style="margin: 10px 0;">✅ Brand and actions columns use minmax for better responsive behavior</li>
+                    <li style="margin: 10px 0;">✅ Maintains proper spacing from navigation elements</li>
+                    <li style="margin: 10px 0;">✅ Responsive design preserved for smaller screens</li>
+                </ul>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <h3 style="color: var(--color-gold-primary);">Responsive Breakpoints:</h3>
+                <p>Resize your browser to test different screen sizes:</p>
+                <p style="margin: 10px 0;">• Desktop: Full width with 900px search bar</p>
+                <p style="margin: 10px 0;">• Tablet (≤768px): Stacked layout</p>
+                <p style="margin: 10px 0;">• Mobile (≤480px): Compact view</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        // Add visual feedback for testing
+        document.querySelector('.search-input').addEventListener('focus', function() {
+            console.log('Search bar focused - Width:', this.offsetWidth + 'px');
+        });
+        
+        // Display current viewport width
+        function updateViewportInfo() {
+            const width = window.innerWidth;
+            const searchBar = document.querySelector('.search-container');
+            const actualWidth = searchBar ? searchBar.offsetWidth : 0;
+            console.log(`Viewport: ${width}px, Search bar actual width: ${actualWidth}px`);
+        }
+        
+        window.addEventListener('resize', updateViewportInfo);
+        updateViewportInfo();
+    </script>
+</body>
+</html>

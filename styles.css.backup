@@ -169,13 +169,13 @@ body {
 /* ===== SEARCH BAR ===== */
 .search-container {
   position: relative;
-  max-width: 700px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .search-input {
   width: 100%;
-  padding: var(--space-md) var(--space-2xl) var(--space-md) var(--space-2xl);
+  padding: var(--space-lg) var(--space-2xl) var(--space-lg) var(--space-2xl);
   background: rgba(0, 95, 115, 0.3);
   border: 2px solid transparent;
   border-radius: var(--radius-full);
@@ -204,8 +204,8 @@ body {
   background: var(--gradient-premium);
   border: none;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   font-size: var(--text-lg);
   cursor: pointer;
   transition: var(--transition-base);
