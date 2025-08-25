@@ -1,0 +1,390 @@
+name: Performance Monitoring & CI/CD Gates
+
+on:
+  push:
+    branches: [ main, staging, develop ]
+  pull_request:
+    branches: [ main, staging ]
+  schedule:
+    # Run performance checks daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      lighthouse_runs:
+        description: 'Number of Lighthouse runs (1-10)'
+        required: false
+        default: '5'
+        type: string
+
+env:
+  NODE_VERSION: '18'
+  PERFORMANCE_BUDGET_FILE: 'lighthouse-budget.json'
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+jobs:
+  build-and-test:
+    name: Build & Unit Tests
+    runs-on: ubuntu-latest
+    outputs:
+      build-time: ${{ steps.build-time.outputs.duration }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          echo "Dependencies installed at: $(date)"
+
+      - name: Run TypeScript compilation
+        run: |
+          npm run build:check || npm run type-check
+
+      - name: Build application with timing
+        id: build-time
+        run: |
+          start_time=$(date +%s)
+          npm run build
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "duration=$duration" >> $GITHUB_OUTPUT
+          echo "Build completed in ${duration} seconds"
+
+      - name: Run unit tests
+        run: |
+          npm run test:ci || npm test -- --coverage --watchAll=false
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            .next/
+            out/
+          retention-days: 1
+
+  lighthouse-audit:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    strategy:
+      matrix:
+        page: ['/', '/search', '/business/1']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: .
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Start application
+        run: |
+          npm run start &
+          sleep 30
+          curl -f http://localhost:3000 || (echo "App failed to start" && exit 1)
+
+      - name: Run Lighthouse CI
+        id: lighthouse
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3000${{ matrix.page }}
+          configPath: '.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          runs: ${{ github.event.inputs.lighthouse_runs || 5 }}
+
+      - name: Parse Lighthouse Results
+        id: lighthouse-results
+        run: |
+          # Extract key metrics from Lighthouse results
+          RESULTS_FILE=".lighthouseci/lhci_reports/manifest.json"
+          if [ -f "$RESULTS_FILE" ]; then
+            # Extract performance metrics using jq
+            PERFORMANCE_SCORE=$(jq -r '.[0].summary.performance' "$RESULTS_FILE" 2>/dev/null || echo "0")
+            LCP=$(jq -r '.[0].jsonPath | fromjson | .audits["largest-contentful-paint"].numericValue' "$RESULTS_FILE" 2>/dev/null || echo "0")
+            FID=$(jq -r '.[0].jsonPath | fromjson | .audits["max-potential-fid"].numericValue' "$RESULTS_FILE" 2>/dev/null || echo "0")
+            CLS=$(jq -r '.[0].jsonPath | fromjson | .audits["cumulative-layout-shift"].numericValue' "$RESULTS_FILE" 2>/dev/null || echo "0")
+            
+            echo "performance_score=$PERFORMANCE_SCORE" >> $GITHUB_OUTPUT
+            echo "lcp=$LCP" >> $GITHUB_OUTPUT
+            echo "fid=$FID" >> $GITHUB_OUTPUT
+            echo "cls=$CLS" >> $GITHUB_OUTPUT
+            echo "page=${{ matrix.page }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Performance Gate Check
+        id: performance-gate
+        run: |
+          # Define performance thresholds
+          MIN_PERFORMANCE_SCORE=80
+          MAX_LCP_MS=2500
+          MAX_FID_MS=100
+          MAX_CLS=0.1
+          
+          PERFORMANCE_SCORE="${{ steps.lighthouse-results.outputs.performance_score }}"
+          LCP="${{ steps.lighthouse-results.outputs.lcp }}"
+          FID="${{ steps.lighthouse-results.outputs.fid }}"
+          CLS="${{ steps.lighthouse-results.outputs.cls }}"
+          
+          echo "🔍 Performance Gate Check for ${{ matrix.page }}"
+          echo "Performance Score: $PERFORMANCE_SCORE (min: $MIN_PERFORMANCE_SCORE)"
+          echo "LCP: ${LCP}ms (max: ${MAX_LCP_MS}ms)"
+          echo "FID: ${FID}ms (max: ${MAX_FID_MS}ms)"
+          echo "CLS: $CLS (max: $MAX_CLS)"
+          
+          FAILED=false
+          FAILURES=""
+          
+          if (( $(echo "$PERFORMANCE_SCORE < $MIN_PERFORMANCE_SCORE" | bc -l) )); then
+            FAILED=true
+            FAILURES="$FAILURES\n❌ Performance Score: $PERFORMANCE_SCORE < $MIN_PERFORMANCE_SCORE"
+          fi
+          
+          if (( $(echo "$LCP > $MAX_LCP_MS" | bc -l) )); then
+            FAILED=true
+            FAILURES="$FAILURES\n❌ LCP: ${LCP}ms > ${MAX_LCP_MS}ms"
+          fi
+          
+          if (( $(echo "$FID > $MAX_FID_MS" | bc -l) )); then
+            FAILED=true
+            FAILURES="$FAILURES\n❌ FID: ${FID}ms > ${MAX_FID_MS}ms"
+          fi
+          
+          if (( $(echo "$CLS > $MAX_CLS" | bc -l) )); then
+            FAILED=true
+            FAILURES="$FAILURES\n❌ CLS: $CLS > $MAX_CLS"
+          fi
+          
+          if [ "$FAILED" = "true" ]; then
+            echo "gate_passed=false" >> $GITHUB_OUTPUT
+            echo "failures=$FAILURES" >> $GITHUB_OUTPUT
+            echo "🚨 Performance gate FAILED for ${{ matrix.page }}"
+            echo -e "$FAILURES"
+          else
+            echo "gate_passed=true" >> $GITHUB_OUTPUT
+            echo "✅ Performance gate PASSED for ${{ matrix.page }}"
+          fi
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const page = '${{ matrix.page }}';
+            const perfScore = '${{ steps.lighthouse-results.outputs.performance_score }}';
+            const lcp = '${{ steps.lighthouse-results.outputs.lcp }}';
+            const fid = '${{ steps.lighthouse-results.outputs.fid }}';
+            const cls = '${{ steps.lighthouse-results.outputs.cls }}';
+            const gatePassed = '${{ steps.performance-gate.outputs.gate_passed }}';
+            const failures = `${{ steps.performance-gate.outputs.failures }}`;
+            
+            const status = gatePassed === 'true' ? '✅ PASSED' : '❌ FAILED';
+            const emoji = gatePassed === 'true' ? '🎉' : '⚠️';
+            
+            const comment = `
+            ## ${emoji} Performance Audit Results - \`${page}\`
+            
+            **Status:** ${status}
+            
+            ### Core Web Vitals
+            | Metric | Value | Status |
+            |--------|-------|---------|
+            | Performance Score | ${perfScore}/100 | ${perfScore >= 80 ? '✅' : '❌'} |
+            | LCP (Largest Contentful Paint) | ${Math.round(lcp)}ms | ${lcp <= 2500 ? '✅' : '❌'} |
+            | FID (First Input Delay) | ${Math.round(fid)}ms | ${fid <= 100 ? '✅' : '❌'} |
+            | CLS (Cumulative Layout Shift) | ${parseFloat(cls).toFixed(3)} | ${cls <= 0.1 ? '✅' : '❌'} |
+            
+            ${gatePassed === 'false' ? `### ❌ Gate Failures\n${failures.replace(/\\n/g, '\n')}` : ''}
+            
+            <details>
+            <summary>📊 Performance Thresholds</summary>
+            
+            - **Performance Score:** ≥ 80
+            - **LCP (Largest Contentful Paint):** ≤ 2.5s
+            - **FID (First Input Delay):** ≤ 100ms
+            - **CLS (Cumulative Layout Shift):** ≤ 0.1
+            </details>
+            `;
+            
+            // Find existing comment and update or create new one
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.data.find(comment => 
+              comment.body.includes(`Performance Audit Results - \`${page}\``)
+            );
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: .
+
+      - name: Analyze bundle size
+        id: bundle-analysis
+        run: |
+          # Install bundle analyzer
+          npx @next/bundle-analyzer --help || npm install -g @next/bundle-analyzer
+          
+          # Generate bundle analysis
+          npm run analyze || echo "Bundle analysis command not available"
+          
+          # Extract bundle sizes (simplified - adjust based on your build output)
+          if [ -f ".next/static/chunks" ]; then
+            TOTAL_SIZE=$(du -sb .next/static | cut -f1)
+            JS_SIZE=$(find .next/static -name "*.js" -exec du -cb {} + | tail -1 | cut -f1)
+            CSS_SIZE=$(find .next/static -name "*.css" -exec du -cb {} + | tail -1 | cut -f1)
+            
+            echo "total_size=$TOTAL_SIZE" >> $GITHUB_OUTPUT
+            echo "js_size=$JS_SIZE" >> $GITHUB_OUTPUT  
+            echo "css_size=$CSS_SIZE" >> $GITHUB_OUTPUT
+            
+            echo "📦 Bundle Analysis:"
+            echo "Total Size: $(($TOTAL_SIZE / 1024)) KB"
+            echo "JavaScript: $(($JS_SIZE / 1024)) KB"
+            echo "CSS: $(($CSS_SIZE / 1024)) KB"
+          fi
+
+  performance-summary:
+    name: Performance Summary & Notifications
+    runs-on: ubuntu-latest
+    needs: [build-and-test, lighthouse-audit, bundle-analysis]
+    if: always()
+    steps:
+      - name: Collect Results
+        id: collect-results
+        run: |
+          BUILD_TIME="${{ needs.build-and-test.outputs.build-time }}"
+          echo "build_time=$BUILD_TIME" >> $GITHUB_OUTPUT
+          
+          # Determine overall status
+          LIGHTHOUSE_SUCCESS="${{ needs.lighthouse-audit.result }}"
+          BUNDLE_SUCCESS="${{ needs.bundle-analysis.result }}"
+          
+          if [ "$LIGHTHOUSE_SUCCESS" = "success" ] && [ "$BUNDLE_SUCCESS" = "success" ]; then
+            echo "overall_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "overall_status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL && (github.ref == 'refs/heads/main' || failure())
+        run: |
+          STATUS="${{ steps.collect-results.outputs.overall_status }}"
+          BUILD_TIME="${{ steps.collect-results.outputs.build_time }}"
+          
+          if [ "$STATUS" = "success" ]; then
+            COLOR="good"
+            EMOJI="✅"
+            TITLE="Performance Monitoring Passed"
+          else
+            COLOR="danger"  
+            EMOJI="🚨"
+            TITLE="Performance Monitoring Failed"
+          fi
+          
+          PAYLOAD=$(cat <<EOF
+          {
+            "attachments": [
+              {
+                "color": "$COLOR",
+                "title": "$EMOJI $TITLE",
+                "fields": [
+                  {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "${{ github.ref_name }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Build Time",
+                    "value": "${BUILD_TIME}s",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>",
+                    "short": true
+                  }
+                ],
+                "footer": "GitHub Actions Performance Monitor",
+                "ts": $(date +%s)
+              }
+            ]
+          }
+          EOF
+          )
+          
+          curl -X POST -H 'Content-type: application/json' \
+               --data "$PAYLOAD" \
+               "$SLACK_WEBHOOK_URL"
+
+      - name: Fail if performance gates failed
+        if: steps.collect-results.outputs.overall_status == 'failure'
+        run: |
+          echo "🚨 Performance gates failed. Check the logs above for details."
+          exit 1

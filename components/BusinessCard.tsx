@@ -104,14 +104,15 @@ const BusinessCard: React.FC<BusinessCardComponentProps> = ({
   const normalizedBusiness = normalizeBusinessData(business);
   // Card animation hook
   const {
-    cardRef,
+    ref: cardRef,
     handleMouseEnter,
     handleMouseLeave,
-    animationStyles,
-    glassmorphismStyles
-  } = useCardAnimation(index, `business-card-${normalizedBusiness.id}`, {
+    isRevealed,
+    isHovered: isAnimationHovered,
+    isAnimating,
+    isPremium: isAnimatedPremium
+  } = useCardAnimation(`business-card-${normalizedBusiness.id}`, index, {
     enableHoverEffects: enableAnimations,
-    enableGlassmorphism: showGlassEffect,
     animationDuration: 600,
     staggerDelay: 100
   });
@@ -274,7 +275,7 @@ const BusinessCard: React.FC<BusinessCardComponentProps> = ({
       initial={enableAnimations ? "hidden" : undefined}
       animate={enableAnimations ? "visible" : undefined}
       whileHover={enableAnimations ? "hover" : undefined}
-      style={enableAnimations ? animationStyles : undefined}
+      style={undefined}
       onClick={handleCardClick}
       onMouseEnter={handleEnhancedMouseEnter}
       onMouseLeave={handleEnhancedMouseLeave}
@@ -289,7 +290,7 @@ const BusinessCard: React.FC<BusinessCardComponentProps> = ({
         className="business-card h-full overflow-hidden"
         animated={enableAnimations}
         interactive
-        style={showGlassEffect ? glassmorphismStyles : undefined}
+        style={undefined}
       >
         {/* Premium Badge Overlay */}
         <AnimatePresence>

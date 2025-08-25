@@ -29,32 +29,25 @@ export default function SearchBar({
   // Search functionality with all advanced features
   const {
     query,
-    isSearching,
-    showSuggestions,
-    selectedSuggestionIndex,
     suggestions,
-    suggestionsLoading,
-    searchInputRef,
-    suggestionsRef,
-    updateQuery,
-    executeSearch,
-    selectSuggestion,
-    showSuggestions: showSuggestionsHandler,
-    hideSuggestions,
-    clearSearch,
+    selectedIndex: selectedSuggestionIndex,
+    isLoading: hookIsLoading,
+    showSuggestions,
+    handleInputChange: updateQuery,
     handleKeyDown,
-    handleCompositionStart,
-    handleCompositionEnd,
-    options: searchOptions
+    handleFocus: showSuggestionsHandler,
+    handleBlur: hideSuggestions,
+    selectSuggestion,
+    performSearch: executeSearch,
+    clearSearch,
+    inputRef: searchInputRef,
+    suggestionsRef
   } = useSearchFunctionality({
     onSearch,
-    searchOptions: {
-      placeholder,
-      enableHistory: true,
-      enableKeyboardNavigation: true,
-      debounceMs: 300,
-      minQueryLength: 2
-    }
+    debounceMs: 300,
+    minQueryLength: 2,
+    enableHistory: true,
+    enableKeyboardNavigation: true
   });
 
   // Keyboard shortcuts
@@ -103,7 +96,7 @@ export default function SearchBar({
   }, [clearSearch]);
 
   // Determine if we should show the loading state
-  const showLoading = isLoading || isSearching || suggestionsLoading;
+  const showLoading = isLoading || hookIsLoading;
 
   return (
     <div className={`search-bar-container relative ${className}`} data-testid="search-container">
@@ -144,8 +137,6 @@ export default function SearchBar({
               onChange={handleInputChange}
               onFocus={handleInputFocus}
               onKeyDown={handleKeyDown}
-              onCompositionStart={handleCompositionStart}
-              onCompositionEnd={handleCompositionEnd}
               autoComplete="off"
               data-testid="search-input"
               disabled={isLoading}
@@ -224,7 +215,7 @@ export default function SearchBar({
           onSelect={handleSuggestionSelect}
           onClose={hideSuggestions}
           isVisible={showSuggestions}
-          loading={suggestionsLoading}
+          loading={hookIsLoading}
           maxHeight={400}
           className="suggestions-container"
         />

@@ -1,5 +1,7 @@
-// Analytics and Performance Tracking Utility
-// Comprehensive analytics system for business directory application
+// Enhanced Analytics and Performance Tracking Utility
+// Comprehensive analytics system with Core Web Vitals and GA4 integration
+
+import { onCLS, onFCP, onLCP, onTTFB, onINP } from 'web-vitals';
 
 interface AnalyticsEvent {
   name: string;
@@ -55,8 +57,34 @@ interface PerformanceMetrics {
   firstContentfulPaint: number;
   largestContentfulPaint: number;
   cumulativeLayoutShift: number;
+  // Note: First Input Delay (FID) deprecated in web-vitals v5, replaced by INP
+  interactionToNextPaint?: number;
+  timeToFirstByte?: number;
   sessionId: string;
   timestamp: number;
+  url: string;
+  deviceType: 'mobile' | 'tablet' | 'desktop';
+  connectionType?: string;
+  rating: 'good' | 'needs-improvement' | 'poor';
+}
+
+interface CoreWebVitalMetric {
+  name: 'CLS' | 'FCP' | 'LCP' | 'TTFB' | 'INP';
+  value: number;
+  rating: 'good' | 'needs-improvement' | 'poor';
+  delta: number;
+  id: string;
+  timestamp: number;
+  url: string;
+  sessionId: string;
+}
+
+interface GoogleAnalyticsConfig {
+  measurementId: string;
+  apiSecret?: string;
+  debugMode?: boolean;
+  sendPageView?: boolean;
+  customParameters?: Record<string, any>;
 }
 
 class Analytics {
@@ -65,6 +93,8 @@ class Analytics {
   private businessInteractions: BusinessInteraction[] = [];
   private searchAnalytics: SearchAnalytics[] = [];
   private performanceMetrics: PerformanceMetrics[] = [];
+  private coreWebVitals: CoreWebVitalMetric[] = [];
+  private gaConfig: GoogleAnalyticsConfig | null = null;
   
   // Configuration
   private config = {
@@ -75,13 +105,17 @@ class Analytics {
     flushInterval: 30000, // 30 seconds
     enablePerformanceTracking: true,
     enableLocationTracking: false,
-    enableErrorTracking: true
+    enableErrorTracking: true,
+    enableCoreWebVitals: true,
+    enableGoogleAnalytics: false,
+    googleAnalyticsConfig: null as GoogleAnalyticsConfig | null
   };
 
   private batchTimer: NodeJS.Timeout | null = null;
 
   constructor(config: Partial<typeof this.config> = {}) {
     this.config = { ...this.config, ...config };
+    this.gaConfig = this.config.googleAnalyticsConfig;
     this.currentSession = this.initializeSession();
     
     this.setupEventListeners();
@@ -93,6 +127,14 @@ class Analytics {
     
     if (this.config.enableErrorTracking) {
       this.setupErrorTracking();
+    }
+    
+    if (this.config.enableCoreWebVitals) {
+      this.initializeCoreWebVitals();
+    }
+    
+    if (this.config.enableGoogleAnalytics && this.gaConfig) {
+      this.initializeGoogleAnalytics();
     }
   }
 
@@ -226,6 +268,101 @@ class Analytics {
     });
   }
 
+  // Initialize Core Web Vitals tracking
+  private initializeCoreWebVitals(): void {
+    const reportWebVital = (metric: any) => {
+      const webVitalMetric: CoreWebVitalMetric = {
+        name: metric.name,
+        value: metric.value,
+        rating: metric.rating,
+        delta: metric.delta,
+        id: metric.id,
+        timestamp: Date.now(),
+        url: window.location.href,
+        sessionId: this.currentSession.sessionId
+      };
+      
+      this.coreWebVitals.push(webVitalMetric);
+      this.track('core_web_vital', webVitalMetric);
+      
+      // Send to Google Analytics if enabled
+      if (this.config.enableGoogleAnalytics && this.gaConfig) {
+        this.sendToGoogleAnalytics('web_vital', {
+          metric_name: metric.name,
+          metric_value: metric.value,
+          metric_rating: metric.rating,
+          metric_id: metric.id
+        });
+      }
+      
+      if (this.config.enableConsoleLogging) {
+        console.log(`📊 Core Web Vital - ${metric.name}:`, webVitalMetric);
+      }
+    };
+
+    // Initialize all Core Web Vitals (FID removed in web-vitals v5, replaced by INP)
+    try {
+      onCLS(reportWebVital);
+      onFCP(reportWebVital);
+      onLCP(reportWebVital);
+      onTTFB(reportWebVital);
+      onINP(reportWebVital);
+    } catch (error) {
+      console.error("Core Web Vitals tracking failed:", error);
+    }
+  }
+
+  // Initialize Google Analytics 4
+  private initializeGoogleAnalytics(): void {
+    if (!this.gaConfig) return;
+    
+    try {
+      // Load gtag script
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${this.gaConfig.measurementId}`;
+      document.head.appendChild(script);
+      
+      // Initialize gtag
+      (window as any).dataLayer = (window as any).dataLayer || [];
+      (window as any).gtag = function() {
+        (window as any).dataLayer.push(arguments);
+      };
+      
+      const gtag = (window as any).gtag;
+      gtag('js', new Date());
+      gtag('config', this.gaConfig.measurementId, {
+        send_page_view: this.gaConfig.sendPageView ?? true,
+        debug_mode: this.gaConfig.debugMode ?? false,
+        ...this.gaConfig.customParameters
+      });
+      
+      if (this.config.enableConsoleLogging) {
+        console.log('📊 Google Analytics 4 initialized:', this.gaConfig.measurementId);
+      }
+    } catch (error) {
+      console.error('Failed to initialize Google Analytics 4:', error);
+    }
+  }
+
+  // Send custom event to Google Analytics
+  private sendToGoogleAnalytics(eventName: string, parameters: Record<string, any>): void {
+    if (!this.gaConfig || typeof window === 'undefined' || !(window as any).gtag) return;
+    
+    try {
+      const gtag = (window as any).gtag;
+      gtag('event', eventName, {
+        session_id: this.currentSession.sessionId,
+        timestamp: Date.now(),
+        ...parameters
+      });
+    } catch (error) {
+      if (this.config.enableConsoleLogging) {
+        console.warn('Failed to send event to Google Analytics:', error);
+      }
+    }
+  }
+
   private startBatchTimer(): void {
     this.batchTimer = setInterval(() => {
       this.flush();
@@ -252,6 +389,11 @@ class Analytics {
 
     this.events.push(event);
     this.currentSession.interactions++;
+
+    // Send to Google Analytics if enabled
+    if (this.config.enableGoogleAnalytics && this.gaConfig) {
+      this.sendToGoogleAnalytics(eventName, properties || {});
+    }
 
     if (this.config.enableConsoleLogging) {
       console.log('📊 Analytics Event:', event);
@@ -365,6 +507,31 @@ class Analytics {
 
   public getPerformanceMetrics(): PerformanceMetrics[] {
     return [...this.performanceMetrics];
+  }
+
+  public getCoreWebVitals(): CoreWebVitalMetric[] {
+    return [...this.coreWebVitals];
+  }
+
+  public getGoogleAnalyticsConfig(): GoogleAnalyticsConfig | null {
+    return this.gaConfig;
+  }
+
+  // Get performance score based on Core Web Vitals
+  public getPerformanceScore(): number {
+    const vitals = this.getCoreWebVitals();
+    if (vitals.length === 0) return 0;
+
+    const scores = vitals.map(vital => {
+      switch (vital.rating) {
+        case 'good': return 100;
+        case 'needs-improvement': return 70;
+        case 'poor': return 30;
+        default: return 0;
+      }
+    });
+
+    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
   }
 
   public getPopularSearches(limit: number = 10): { query: string; count: number }[] {

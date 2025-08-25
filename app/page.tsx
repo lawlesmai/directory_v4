@@ -8,6 +8,7 @@ import FilterBar from '../components/FilterBar';
 import { BusinessCardSkeleton } from '../components/SkeletonLoader';
 import { useBusinesses, useCategories } from '../hooks/useBusinessData';
 import type { BusinessSearchParams } from '../lib/api/businesses';
+import { PageErrorBoundary, ComponentErrorBoundary } from '../components/ErrorBoundary';
 
 // Legacy sample business data for fallback
 const sampleBusinesses = [
@@ -181,7 +182,7 @@ export default function Home() {
 
 
   return (
-    <>
+    <PageErrorBoundary pageName="home">
       {/* Animated gradient background */}
       <div className="gradient-bg"></div>
       
@@ -271,15 +272,24 @@ export default function Home() {
 
               {/* Business cards - Use database data or fallback to sample */}
               {!hasError && (businesses.length > 0 ? businesses : sampleBusinesses).map((business, index) => (
-                <BusinessCard
+                <ComponentErrorBoundary 
                   key={'id' in business ? business.id : (business as any).id}
-                  business={business}
-                  index={index}
-                  animationDelay={index * 150}
-                  isLoading={isLoading}
-                  onCardClick={(businessName) => showNotification(`📋 Showing details for: ${businessName}`)}
-                  onActionClick={handleActionClick}
-                />
+                  componentName="BusinessCard"
+                  fallback={
+                    <div className="p-4 bg-gray-100 border border-gray-200 rounded-md">
+                      <div className="text-sm text-gray-600">Unable to load business card</div>
+                    </div>
+                  }
+                >
+                  <BusinessCard
+                    business={business}
+                    index={index}
+                    animationDelay={index * 150}
+                    isLoading={isLoading}
+                    onCardClick={(businessName) => showNotification(`📋 Showing details for: ${businessName}`)}
+                    onActionClick={handleActionClick}
+                  />
+                </ComponentErrorBoundary>
               ))}
 
               {/* Loading skeleton cards */}
@@ -375,6 +385,6 @@ export default function Home() {
           <p className="footer-tagline">Building trust in local business discovery.</p>
         </div>
       </footer>
-    </>
+    </PageErrorBoundary>
   );
 }

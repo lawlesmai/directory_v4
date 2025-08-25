@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 
 interface ShortcutHandler {
   key: string;
@@ -87,21 +87,25 @@ export const useKeyboardShortcuts = (
 ) => {
   const config = { ...DEFAULT_OPTIONS, ...options };
   const registryRef = useRef<ShortcutRegistry>({});
-  const [activeShortcuts, setActiveShortcuts] = useState<string[]>([]);
   const [lastTriggered, setLastTriggered] = useState<string | null>(null);
 
-  // Register shortcuts
-  useEffect(() => {
-    const registry: ShortcutRegistry = {};
-    
+  // Memoize the registry to prevent infinite loops
+  const registry = useMemo(() => {
+    const reg: ShortcutRegistry = {};
     shortcuts.forEach(shortcut => {
-      const key = `${shortcut.modifiers?.join('+') || ''}+${shortcut.key}`;
-      registry[key] = shortcut;
+      const key = shortcut.modifiers ? shortcut.modifiers.join('+') + '+' + shortcut.key : shortcut.key;
+      reg[key] = shortcut;
     });
-    
-    registryRef.current = registry;
-    setActiveShortcuts(Object.keys(registry));
+    return reg;
   }, [shortcuts]);
+
+  // Memoize active shortcuts to prevent unnecessary re-renders
+  const activeShortcuts = useMemo(() => Object.keys(registry), [registry]);
+
+  // Update registry ref when registry changes
+  useEffect(() => {
+    registryRef.current = registry;
+  }, [registry]);
 
   // Handle keydown events
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -141,11 +145,11 @@ export const useKeyboardShortcuts = (
         shortcut.handler(event);
         
         // Update last triggered
-        const key = `${shortcut.modifiers?.join('+') || ''}+${shortcut.key}`;
+        const key = shortcut.modifiers ? shortcut.modifiers.join('+') + '+' + shortcut.key : shortcut.key;
         setLastTriggered(key);
 
         if (config.debugMode) {
-          console.log(`Keyboard shortcut triggered: ${key}`, shortcut.description);
+          console.log('Keyboard shortcut triggered:', key, shortcut.description);
         }
 
         break;
@@ -166,29 +170,27 @@ export const useKeyboardShortcuts = (
 
   // Dynamically register a shortcut
   const registerShortcut = useCallback((shortcut: ShortcutHandler) => {
-    const key = `${shortcut.modifiers?.join('+') || ''}+${shortcut.key}`;
+    const key = shortcut.modifiers ? shortcut.modifiers.join('+') + '+' + shortcut.key : shortcut.key;
     registryRef.current[key] = shortcut;
-    setActiveShortcuts(Object.keys(registryRef.current));
     
     if (config.debugMode) {
-      console.log(`Registered shortcut: ${key}`, shortcut.description);
+      console.log('Registered shortcut:', key, shortcut.description);
     }
   }, [config.debugMode]);
 
   // Unregister a shortcut
   const unregisterShortcut = useCallback((key: string, modifiers?: string[]) => {
-    const shortcutKey = `${modifiers?.join('+') || ''}+${key}`;
+    const shortcutKey = modifiers ? modifiers.join('+') + '+' + key : key;
     delete registryRef.current[shortcutKey];
-    setActiveShortcuts(Object.keys(registryRef.current));
     
     if (config.debugMode) {
-      console.log(`Unregistered shortcut: ${shortcutKey}`);
+      console.log('Unregistered shortcut:', shortcutKey);
     }
   }, [config.debugMode]);
 
   // Check if a shortcut is registered
   const isShortcutActive = useCallback((key: string, modifiers?: string[]) => {
-    const shortcutKey = `${modifiers?.join('+') || ''}+${key}`;
+    const shortcutKey = modifiers ? modifiers.join('+') + '+' + key : key;
     return shortcutKey in registryRef.current;
   }, []);
 
@@ -307,107 +309,6 @@ export const useCommonShortcuts = (handlers: {
   }
 
   return useKeyboardShortcuts(shortcuts);
-};
-
-// Hook for navigation shortcuts
-export const useNavigationShortcuts = (handlers: {
-  onUp?: () => void;
-  onDown?: () => void;
-  onLeft?: () => void;
-  onRight?: () => void;
-  onPageUp?: () => void;
-  onPageDown?: () => void;
-  onHome?: () => void;
-  onEnd?: () => void;
-  onTab?: () => void;
-  onShiftTab?: () => void;
-}) => {
-  const shortcuts: ShortcutHandler[] = [];
-
-  if (handlers.onUp) {
-    shortcuts.push({
-      key: 'ArrowUp',
-      handler: () => handlers.onUp!(),
-      description: 'Navigate up'
-    });
-  }
-
-  if (handlers.onDown) {
-    shortcuts.push({
-      key: 'ArrowDown',
-      handler: () => handlers.onDown!(),
-      description: 'Navigate down'
-    });
-  }
-
-  if (handlers.onLeft) {
-    shortcuts.push({
-      key: 'ArrowLeft',
-      handler: () => handlers.onLeft!(),
-      description: 'Navigate left'
-    });
-  }
-
-  if (handlers.onRight) {
-    shortcuts.push({
-      key: 'ArrowRight',
-      handler: () => handlers.onRight!(),
-      description: 'Navigate right'
-    });
-  }
-
-  if (handlers.onPageUp) {
-    shortcuts.push({
-      key: 'PageUp',
-      handler: () => handlers.onPageUp!(),
-      description: 'Page up'
-    });
-  }
-
-  if (handlers.onPageDown) {
-    shortcuts.push({
-      key: 'PageDown',
-      handler: () => handlers.onPageDown!(),
-      description: 'Page down'
-    });
-  }
-
-  if (handlers.onHome) {
-    shortcuts.push({
-      key: 'Home',
-      handler: () => handlers.onHome!(),
-      description: 'Go to start'
-    });
-  }
-
-  if (handlers.onEnd) {
-    shortcuts.push({
-      key: 'End',
-      handler: () => handlers.onEnd!(),
-      description: 'Go to end'
-    });
-  }
-
-  if (handlers.onTab) {
-    shortcuts.push({
-      key: 'Tab',
-      handler: () => handlers.onTab!(),
-      description: 'Next item',
-      preventDefault: false
-    });
-  }
-
-  if (handlers.onShiftTab) {
-    shortcuts.push({
-      key: 'Tab',
-      modifiers: ['shift'],
-      handler: () => handlers.onShiftTab!(),
-      description: 'Previous item',
-      preventDefault: false
-    });
-  }
-
-  return useKeyboardShortcuts(shortcuts, { enableInInputs: false });
 };
 
 export default useKeyboardShortcuts;

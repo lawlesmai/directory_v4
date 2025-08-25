@@ -316,6 +316,20 @@ export const useCardAnimations = (options: UseCardAnimationsOptions = {}) => {
   }, [cardStates]);
 
   return {
+    handleMouseEnter: () => {
+      if (ref.current) {
+        ref.current.style.transform = "translateY(-4px) scale(1.02)";
+        ref.current.style.boxShadow = "0 8px 30px rgba(0, 0, 0, 0.15)";
+        ref.current.style.zIndex = "10";
+      }
+    },
+    handleMouseLeave: () => {
+      if (ref.current) {
+        ref.current.style.transform = "translateY(0) scale(1)";
+        ref.current.style.boxShadow = "";
+        ref.current.style.zIndex = "";
+      }
+    },
     // Methods
     registerCard,
     unregisterCard,
@@ -368,6 +382,20 @@ export const useCardAnimation = (
   const state = getCardState(cardId);
 
   return {
+    handleMouseEnter: () => {
+      if (ref.current) {
+        ref.current.style.transform = "translateY(-4px) scale(1.02)";
+        ref.current.style.boxShadow = "0 8px 30px rgba(0, 0, 0, 0.15)";
+        ref.current.style.zIndex = "10";
+      }
+    },
+    handleMouseLeave: () => {
+      if (ref.current) {
+        ref.current.style.transform = "translateY(0) scale(1)";
+        ref.current.style.boxShadow = "";
+        ref.current.style.zIndex = "";
+      }
+    },
     ref,
     isRevealed: state?.isRevealed || false,
     isHovered: state?.isHovered || false,

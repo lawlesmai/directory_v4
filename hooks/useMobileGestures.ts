@@ -24,6 +24,18 @@ interface PinchGesture {
   center: TouchCoordinates;
 }
 
+interface PullToRefreshGesture {
+  distance: number;
+  velocity: number;
+  isTriggered: boolean;
+}
+
+interface EdgeSwipeGesture {
+  edge: 'left' | 'right' | 'top' | 'bottom';
+  distance: number;
+  velocity: number;
+}
+
 interface GestureCallbacks {
   onSwipe?: (gesture: SwipeGesture, element: HTMLElement) => void;
   onTap?: (gesture: TapGesture, element: HTMLElement) => void;
@@ -32,6 +44,8 @@ interface GestureCallbacks {
   onPinch?: (gesture: PinchGesture, element: HTMLElement) => void;
   onTouchStart?: (coordinates: TouchCoordinates, element: HTMLElement) => void;
   onTouchEnd?: (coordinates: TouchCoordinates, element: HTMLElement) => void;
+  onPullToRefresh?: (gesture: PullToRefreshGesture, element: HTMLElement) => void;
+  onEdgeSwipe?: (gesture: EdgeSwipeGesture, element: HTMLElement) => void;
 }
 
 interface UseMobileGesturesOptions extends GestureCallbacks {
@@ -43,6 +57,10 @@ interface UseMobileGesturesOptions extends GestureCallbacks {
   enableHapticFeedback?: boolean;
   gesturePreventDefault?: boolean;
   debugMode?: boolean;
+  enablePullToRefresh?: boolean;
+  pullToRefreshThreshold?: number;
+  enableEdgeSwipes?: boolean;
+  edgeSwipeThreshold?: number;
 }
 
 interface TouchState {
@@ -55,6 +73,10 @@ interface TouchState {
   isLongPress: boolean;
   initialDistance: number;
   currentScale: number;
+  pullToRefreshDistance: number;
+  isPullToRefreshActive: boolean;
+  isEdgeSwipe: boolean;
+  edgeSwipeDirection: 'left' | 'right' | 'top' | 'bottom' | null;
 }
 
 export const useMobileGestures = (
@@ -70,13 +92,19 @@ export const useMobileGestures = (
     enableHapticFeedback = true,
     gesturePreventDefault = false,
     debugMode = false,
+    enablePullToRefresh = true,
+    pullToRefreshThreshold = 80,
+    enableEdgeSwipes = true,
+    edgeSwipeThreshold = 20,
     onSwipe,
     onTap,
     onDoubleTap,
     onLongPress,
     onPinch,
     onTouchStart,
-    onTouchEnd
+    onTouchEnd,
+    onPullToRefresh,
+    onEdgeSwipe
   } = options;
 
   const touchStateRef = useRef<TouchState>({
@@ -88,37 +116,61 @@ export const useMobileGestures = (
     longPressTimer: null,
     isLongPress: false,
     initialDistance: 0,
-    currentScale: 1
+    currentScale: 1,
+    pullToRefreshDistance: 0,
+    isPullToRefreshActive: false,
+    isEdgeSwipe: false,
+    edgeSwipeDirection: null
   });
 
   const [isGestureActive, setIsGestureActive] = useState(false);
   const [currentGesture, setCurrentGesture] = useState<string>('');
 
-  // Haptic feedback utility
-  const triggerHapticFeedback = useCallback((intensity: 'light' | 'medium' | 'heavy' = 'light') => {
+  // Enhanced haptic feedback utility
+  const triggerHapticFeedback = useCallback((intensity: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' = 'light') => {
     if (!enableHapticFeedback) return;
     
-    // Modern haptic feedback API
+    // Modern haptic feedback API with enhanced patterns
     if ('vibrate' in navigator) {
       const patterns = {
         light: [10],
         medium: [20],
-        heavy: [30]
+        heavy: [30],
+        success: [10, 10, 10], // Triple light tap
+        warning: [20, 10, 20], // Medium-light-medium
+        error: [50, 20, 50] // Heavy-light-heavy
       };
-      navigator.vibrate(patterns[intensity]);
+      navigator.vibrate(patterns[intensity] || patterns.light);
     }
     
-    // iOS Haptic Feedback API (if available)
+    // iOS Haptic Feedback API (if available) - enhanced for iOS 15+
     if ('HapticFeedback' in window && (window as any).HapticFeedback) {
       const impacts = {
         light: 'impactLight',
         medium: 'impactMedium', 
-        heavy: 'impactHeavy'
+        heavy: 'impactHeavy',
+        success: 'notificationSuccess',
+        warning: 'notificationWarning',
+        error: 'notificationError'
       };
       try {
-        (window as any).HapticFeedback[impacts[intensity]]();
+        (window as any).HapticFeedback[impacts[intensity] || impacts.light]();
       } catch (error) {
         if (debugMode) console.warn('Haptic feedback failed:', error);
+      }
+    }
+    
+    // Web Vibration API fallback with type-specific patterns
+    if ('vibrate' in navigator && !('HapticFeedback' in window)) {
+      const customPatterns = {
+        pullToRefresh: [15, 5, 15],
+        edgeSwipe: [8, 3, 8, 3, 8],
+        longPress: [25],
+        pinchZoom: [5]
+      };
+      
+      if (customPatterns[intensity as keyof typeof customPatterns]) {
+        navigator.vibrate(customPatterns[intensity as keyof typeof customPatterns]);
       }
     }
   }, [enableHapticFeedback, debugMode]);
@@ -156,6 +208,35 @@ export const useMobileGestures = (
     }
   }, []);
 
+  // Detect if touch started from screen edge
+  const detectEdgeSwipe = useCallback((coordinates: TouchCoordinates): 'left' | 'right' | 'top' | 'bottom' | null => {
+    if (!enableEdgeSwipes) return null;
+    
+    const { innerWidth, innerHeight } = window;
+    const { x, y } = coordinates;
+    
+    if (x <= edgeSwipeThreshold) return 'left';
+    if (x >= innerWidth - edgeSwipeThreshold) return 'right';
+    if (y <= edgeSwipeThreshold) return 'top';
+    if (y >= innerHeight - edgeSwipeThreshold) return 'bottom';
+    
+    return null;
+  }, [enableEdgeSwipes, edgeSwipeThreshold]);
+
+  // Check if gesture qualifies as pull-to-refresh
+  const checkPullToRefresh = useCallback((start: TouchCoordinates, current: TouchCoordinates): PullToRefreshGesture => {
+    const deltaY = current.y - start.y;
+    const isDownwardSwipe = deltaY > 0;
+    const isFromTop = start.y <= 100; // Started near top of screen
+    const distance = Math.abs(deltaY);
+    
+    return {
+      distance,
+      velocity: 0, // Will be calculated later
+      isTriggered: enablePullToRefresh && isDownwardSwipe && isFromTop && distance >= pullToRefreshThreshold
+    };
+  }, [enablePullToRefresh, pullToRefreshThreshold]);
+
   // Handle touch start
   const handleTouchStart = useCallback((event: TouchEvent) => {
     if (!elementRef.current) return;
@@ -175,6 +256,10 @@ export const useMobileGestures = (
       clearTimeout(touchStateRef.current.longPressTimer);
     }
 
+    // Detect edge swipe
+    const edgeDirection = detectEdgeSwipe(coordinates);
+    const isEdgeSwipe = edgeDirection !== null;
+
     // Update touch state
     touchStateRef.current = {
       ...touchStateRef.current,
@@ -182,10 +267,14 @@ export const useMobileGestures = (
       startCoordinates: coordinates,
       currentCoordinates: coordinates,
       isLongPress: false,
+      pullToRefreshDistance: 0,
+      isPullToRefreshActive: false,
+      isEdgeSwipe,
+      edgeSwipeDirection: edgeDirection,
       longPressTimer: setTimeout(() => {
         touchStateRef.current.isLongPress = true;
         setCurrentGesture('longpress');
-        triggerHapticFeedback('medium');
+        triggerHapticFeedback('longPress');
         onLongPress?.(coordinates, element);
         if (debugMode) console.log('Long press detected', coordinates);
       }, longPressDelay)
@@ -211,6 +300,37 @@ export const useMobileGestures = (
     const coordinates = getTouchCoordinates(event);
     touchStateRef.current.currentCoordinates = coordinates;
 
+    // Handle pull-to-refresh
+    if (enablePullToRefresh && event.touches.length === 1) {
+      const pullGesture = checkPullToRefresh(touchStateRef.current.startCoordinates, coordinates);
+      touchStateRef.current.pullToRefreshDistance = pullGesture.distance;
+      
+      if (pullGesture.isTriggered && !touchStateRef.current.isPullToRefreshActive) {
+        touchStateRef.current.isPullToRefreshActive = true;
+        setCurrentGesture('pullToRefresh');
+        triggerHapticFeedback('pullToRefresh');
+        if (debugMode) console.log('Pull to refresh triggered');
+      }
+      
+      // Continue tracking pull-to-refresh during move
+      if (touchStateRef.current.isPullToRefreshActive) {
+        onPullToRefresh?.(pullGesture, elementRef.current);
+      }
+    }
+
+    // Handle edge swipe tracking
+    if (touchStateRef.current.isEdgeSwipe && touchStateRef.current.edgeSwipeDirection) {
+      const distance = Math.sqrt(
+        Math.pow(coordinates.x - touchStateRef.current.startCoordinates.x, 2) +
+        Math.pow(coordinates.y - touchStateRef.current.startCoordinates.y, 2)
+      );
+      
+      if (distance > swipeThreshold) {
+        setCurrentGesture('edgeSwipe');
+        if (debugMode) console.log('Edge swipe in progress', touchStateRef.current.edgeSwipeDirection);
+      }
+    }
+
     // Handle pinch gesture
     if (event.touches.length === 2 && touchStateRef.current.initialDistance > 0) {
       const currentDistance = getDistance(event.touches[0], event.touches[1]);
@@ -229,20 +349,21 @@ export const useMobileGestures = (
           center: { x: centerX, y: centerY }
         };
         
+        triggerHapticFeedback('pinchZoom');
         onPinch?.(pinchGesture, elementRef.current);
         if (debugMode) console.log('Pinch move', scale);
       }
     }
 
-    // Cancel long press if finger moves too much
+    // Cancel long press if finger moves too much (unless it's pull-to-refresh)
     const distance = Math.abs(coordinates.x - touchStateRef.current.startCoordinates.x) + 
                     Math.abs(coordinates.y - touchStateRef.current.startCoordinates.y);
     
-    if (distance > 10 && touchStateRef.current.longPressTimer) {
+    if (distance > 10 && touchStateRef.current.longPressTimer && !touchStateRef.current.isPullToRefreshActive) {
       clearTimeout(touchStateRef.current.longPressTimer);
       touchStateRef.current.longPressTimer = null;
     }
-  }, [elementRef, isGestureActive, getTouchCoordinates, getDistance, onPinch, debugMode]);
+  }, [elementRef, isGestureActive, getTouchCoordinates, enablePullToRefresh, checkPullToRefresh, triggerHapticFeedback, onPullToRefresh, swipeThreshold, getDistance, onPinch, debugMode]);
 
   // Handle touch end
   const handleTouchEnd = useCallback((event: TouchEvent) => {
@@ -260,6 +381,44 @@ export const useMobileGestures = (
     if (touchStateRef.current.longPressTimer) {
       clearTimeout(touchStateRef.current.longPressTimer);
       touchStateRef.current.longPressTimer = null;
+    }
+
+    // Handle pull-to-refresh completion
+    if (touchStateRef.current.isPullToRefreshActive) {
+      const pullGesture = checkPullToRefresh(touchStateRef.current.startCoordinates, endCoordinates);
+      pullGesture.velocity = calculateVelocity(pullGesture.distance, duration);
+      
+      if (pullGesture.isTriggered) {
+        triggerHapticFeedback('success');
+        onPullToRefresh?.(pullGesture, element);
+        if (debugMode) console.log('Pull to refresh completed', pullGesture);
+      }
+      
+      onTouchEnd?.(endCoordinates, element);
+      return;
+    }
+
+    // Handle edge swipe completion
+    if (touchStateRef.current.isEdgeSwipe && touchStateRef.current.edgeSwipeDirection) {
+      const deltaX = endCoordinates.x - touchStateRef.current.startCoordinates.x;
+      const deltaY = endCoordinates.y - touchStateRef.current.startCoordinates.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const velocity = calculateVelocity(distance, duration);
+      
+      if (distance > swipeThreshold && velocity > velocityThreshold) {
+        const edgeSwipeGesture: EdgeSwipeGesture = {
+          edge: touchStateRef.current.edgeSwipeDirection,
+          distance,
+          velocity
+        };
+        
+        triggerHapticFeedback('edgeSwipe');
+        onEdgeSwipe?.(edgeSwipeGesture, element);
+        if (debugMode) console.log('Edge swipe completed', edgeSwipeGesture);
+        
+        onTouchEnd?.(endCoordinates, element);
+        return;
+      }
     }
 
     // Skip other gestures if long press was detected

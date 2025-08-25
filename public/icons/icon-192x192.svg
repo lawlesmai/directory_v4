@@ -1,0 +1,7 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="24" fill="#005F73"/>
+  <circle cx="96" cy="96" r="60" fill="#0A9396"/>
+  <path d="M96 56 L96 136 M56 96 L136 96" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  <text x="96" y="156" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">LAWLESS</text>
+  <text x="96" y="172" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle" opacity="0.8">DIRECTORY</text>
+</svg>
