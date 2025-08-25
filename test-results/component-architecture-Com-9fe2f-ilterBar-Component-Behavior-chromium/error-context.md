@@ -1,0 +1,62 @@
+# Page snapshot
+
+```yaml
+- dialog "Unhandled Runtime Error" [ref=e4]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - navigation [ref=e8]:
+          - button "previous" [disabled] [ref=e9]:
+            - img "previous" [ref=e10]
+          - button "next" [disabled] [ref=e12]:
+            - img "next" [ref=e13]
+          - generic [ref=e15]:
+            - generic [ref=e16]: "1"
+            - text: of
+            - generic [ref=e17]: "1"
+            - text: error
+          - generic [ref=e18]:
+            - generic "An outdated version detected (latest is 15.5.0), upgrade is highly recommended!" [ref=e20]: Next.js (14.2.32) is outdated
+            - link "(learn more)" [ref=e21] [cursor=pointer]:
+              - /url: https://nextjs.org/docs/messages/version-staleness
+        - button "Close" [ref=e22] [cursor=pointer]:
+          - img [ref=e24] [cursor=pointer]
+      - heading "Unhandled Runtime Error" [level=1] [ref=e27]
+      - paragraph [ref=e28]: "TypeError: Cannot read properties of undefined (reading 'current')"
+    - generic [ref=e29]:
+      - heading "Source" [level=2] [ref=e30]
+      - generic [ref=e31]:
+        - link "hooks/useMobileGestures.ts (342:32) @ current" [ref=e33] [cursor=pointer]:
+          - generic [ref=e34] [cursor=pointer]: hooks/useMobileGestures.ts (342:32) @ current
+          - img [ref=e35] [cursor=pointer]
+        - generic [ref=e39]:
+          - generic [ref=e41]: 340 |
+          - generic [ref=e43]: // Set up event listeners
+          - generic [ref=e45]: 341 |
+          - generic [ref=e46]: useEffect(()
+          - generic [ref=e47]: =>
+          - generic [ref=e48]: "{"
+          - generic [ref=e49]: ">"
+          - generic [ref=e50]: 342 |
+          - generic [ref=e52]: const
+          - generic [ref=e53]: element
+          - generic [ref=e54]: =
+          - generic [ref=e55]: elementRef
+          - generic [ref=e56]: .
+          - generic [ref=e57]: current
+          - generic [ref=e58]: ;
+          - generic [ref=e60]: "|"
+          - generic [ref=e62]: ^
+          - generic [ref=e64]: 343 |
+          - generic [ref=e66]: if
+          - generic [ref=e67]: (
+          - generic [ref=e68]: "!"
+          - generic [ref=e69]: element)
+          - generic [ref=e70]: return
+          - generic [ref=e71]: ;
+          - generic [ref=e73]: 344 |
+          - generic [ref=e75]: 345 |
+          - generic [ref=e77]: // Add touch event listeners
+      - heading "Call Stack" [level=2] [ref=e78]
+      - button "Show collapsed frames" [ref=e79] [cursor=pointer]
+```

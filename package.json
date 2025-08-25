@@ -1,29 +1,57 @@
 {
-  "name": "webpage-project",
+  "name": "lawless-directory",
   "version": "1.0.0",
-  "description": "A modern webpage project",
-  "main": "index.html",
+  "private": true,
   "scripts": {
-    "start": "npx live-server --port=3000",
-    "test": "jest",
-    "build": "echo 'Build completed - static files ready for deployment'"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "playwright test",
+    "test:watch": "jest --watch",
+    "test:e2e": "playwright test",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:status": "npx supabase status",
+    "supabase:reset": "npx supabase db reset",
+    "supabase:migrate": "npx supabase db reset && npx supabase db push",
+    "supabase:types": "npx supabase gen types typescript --local --schema=public > lib/supabase/types.generated.ts",
+    "db:seed": "npx supabase db reset --db-url postgresql://postgres:postgres@localhost:54322/postgres",
+    "db:setup": "node scripts/setup-database.js"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.56.0",
+    "@tanstack/react-query": "^5.85.5",
+    "@tanstack/react-query-devtools": "^5.85.5",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.12",
+    "next": "^14.2.15",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.62.0",
+    "tailwind-merge": "^3.3.1",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "eslint": "^9.32.0",
-    "jest": "^30.0.5",
-    "live-server": "^1.2.2"
-  },
-  "keywords": [
-    "webpage",
-    "html",
-    "css",
-    "javascript"
-  ],
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
     "@jpisnice/shadcn-ui-mcp-server": "^1.1.0",
     "@playwright/mcp": "^0.0.34",
-    "mcp-jest": "^1.0.13"
+    "@playwright/test": "^1.55.0",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.15",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
+    "mcp-jest": "^1.0.13",
+    "postcss": "^8.4.0",
+    "supabase": "^2.34.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.0.0"
   }
 }
