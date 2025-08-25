@@ -60,6 +60,13 @@ pids
 **/[displaylink]*.zip
 **/*.mp4
 
+# Security - OAuth credentials and secrets
+client_secret_*.json
+*.pem
+*.key
+**/oauth-*.json
+**/credentials.json
+
 # Documentation with large files
 docs/planning/ui-code/Visual Studio Code.app/
 docs/planning/ui-code/*.dmg
