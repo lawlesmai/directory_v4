@@ -7,6 +7,18 @@ node_modules/
 dist/
 coverage/
 
+# Next.js build artifacts
+.next/
+out/
+
+# Testing artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Vercel deployment
+.vercel
+
 # IDE and editor files
 .vscode/
 .idea/
