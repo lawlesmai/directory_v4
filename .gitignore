@@ -39,12 +39,26 @@ pids
 .tmp/
 .cache/
 
-# Large binary files
+# Large binary files and installers
 *.dmg
 *.zip
 *.app/
 *.exe
 *.msi
+*.pkg
+*.deb
+*.rpm
+*.tar.gz
+
+# Application installers and large media
+**/Visual Studio Code.app/
+**/VSCode-*.zip
+**/Slack-*.dmg
+**/synergy-*.dmg
+**/GitHubDesktop-*.zip
+**/MindMendExampleWeb.zip
+**/[displaylink]*.zip
+**/*.mp4
 
 # Documentation with large files
 docs/planning/ui-code/Visual Studio Code.app/
