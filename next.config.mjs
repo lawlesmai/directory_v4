@@ -1,11 +1,31 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    optimizePackageImports: ['react-icons']
+    optimizePackageImports: ['react-icons'],
+    serverComponentsExternalPackages: ['bcryptjs']
   },
   images: {
     domains: ["fonts.googleapis.com", "images.unsplash.com"],
     formats: ['image/avif', 'image/webp'],
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Exclude server-only modules from client bundle
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        crypto: false,
+        stream: false,
+        path: false,
+        os: false,
+      }
+      
+      // Exclude bcryptjs from client bundle
+      config.externals = config.externals || []
+      config.externals.push('bcryptjs')
+    }
+    
+    return config
   },
 };
 

@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Poppins, Inter } from 'next/font/google'
 import './globals.css'
-import { QueryProvider } from '../lib/providers/QueryProvider'
-import { ModalProvider } from '../lib/providers/ModalProvider'
+import { ClientLayout } from './layout-client'
 import { AnalyticsProvider } from '../lib/providers/AnalyticsProvider'
-import { CriticalErrorBoundary } from '../components/ErrorBoundary'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -95,15 +93,11 @@ export default function RootLayout({
       </head>
       
       <body className="font-body antialiased">
-        <CriticalErrorBoundary>
-          <AnalyticsProvider>
-            <QueryProvider>
-              <ModalProvider>
-                {children}
-              </ModalProvider>
-            </QueryProvider>
-          </AnalyticsProvider>
-        </CriticalErrorBoundary>
+        <AnalyticsProvider>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+        </AnalyticsProvider>
         
         {/* Service Worker Registration Script */}
         <script

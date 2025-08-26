@@ -2,14 +2,12 @@
 
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { initializeAnalytics, Analytics } from '../../utils/analytics';
-import { initializeAlertSystem, AlertSystem } from '../monitoring/alertSystem';
 
 interface AnalyticsContextType {
   analytics: Analytics | null;
-  alertSystem: AlertSystem | null;
 }
 
-const AnalyticsContext = createContext<AnalyticsContextType>({ analytics: null, alertSystem: null });
+const AnalyticsContext = createContext<AnalyticsContextType>({ analytics: null });
 
 export const useAnalytics = () => {
   const context = useContext(AnalyticsContext);
@@ -25,7 +23,6 @@ interface AnalyticsProviderProps {
 
 export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   const [analytics, setAnalytics] = React.useState<Analytics | null>(null);
-  const [alertSystem, setAlertSystem] = React.useState<AlertSystem | null>(null);
 
   useEffect(() => {
     // Only initialize analytics in the browser environment
@@ -54,15 +51,6 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       const analyticsInstance = initializeAnalytics(analyticsConfig);
       setAnalytics(analyticsInstance);
 
-      // Initialize alert system
-      const alertSystemInstance = initializeAlertSystem({
-        enableAlerts: true,
-        enableConsoleLogging: process.env.NODE_ENV === 'development',
-        alertsEndpoint: '/api/alerts',
-        checkIntervalMs: 30000 // Check every 30 seconds
-      });
-      setAlertSystem(alertSystemInstance);
-
       // Track initial page load
       analyticsInstance.trackPageView(window.location.pathname, document.title);
 
@@ -87,13 +75,12 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       return () => {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         analyticsInstance.destroy();
-        alertSystemInstance.destroy();
       };
     }
   }, []);
 
   return (
-    <AnalyticsContext.Provider value={{ analytics, alertSystem }}>
+    <AnalyticsContext.Provider value={{ analytics }}>
       {children}
     </AnalyticsContext.Provider>
   );
