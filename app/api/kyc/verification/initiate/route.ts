@@ -40,10 +40,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
   try {
     // Rate limiting - 3 requests per hour per IP
     const rateLimitResult = await rateLimit('kyc-initiate', clientIP, 3, 3600);
-    if (!rateLimitResult.success) {
-      await logSecurityEvent('kyc_initiation_rate_limited', {
-        clientIP,
-        remainingAttempts: rateLimitResult.remaining
+    if (!rateLimitResult.allowed) {
+      await logSecurityEvent('kyc_initiation_rate_limited', 'medium', request, {
+        retryAfter: rateLimitResult.retryAfter
       });
       
       return NextResponse.json({
@@ -59,8 +58,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
       const rawBody = await request.json();
       body = initiateKYCSchema.parse(rawBody);
     } catch (error) {
-      await logSecurityEvent('kyc_initiation_invalid_request', {
-        clientIP,
+      await logSecurityEvent('kyc_initiation_invalid_request', 'medium', request, {
+        
         error: error instanceof Error ? error.message : 'Unknown validation error'
       });
       
@@ -72,9 +71,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
     }
 
     // CSRF validation
-    if (!await validateCSRF(body.csrfToken, request)) {
-      await logSecurityEvent('kyc_initiation_csrf_validation_failed', {
-        clientIP,
+    if (!await validateCSRF(request)) {
+      await logSecurityEvent('kyc_initiation_csrf_validation_failed', 'medium', request, {
+        
         userId: body.userId
       });
       
@@ -91,8 +90,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      await logSecurityEvent('kyc_initiation_unauthenticated', {
-        clientIP,
+      await logSecurityEvent('kyc_initiation_unauthenticated', 'medium', request, {
+        
         requestedUserId: body.userId
       });
       
@@ -112,8 +111,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
       });
 
       if (!hasPermission) {
-        await logSecurityEvent('kyc_initiation_unauthorized', {
-          clientIP,
+        await logSecurityEvent('kyc_initiation_unauthorized', 'medium', request, {
+          
           userId: user.id,
           requestedUserId: body.userId
         });
@@ -152,8 +151,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
         });
 
         if (!hasBusinessPermission) {
-          await logSecurityEvent('kyc_initiation_business_unauthorized', {
-            clientIP,
+          await logSecurityEvent('kyc_initiation_business_unauthorized', 'medium', request, {
+            
             userId: user.id,
             businessId: body.businessId
           });
@@ -176,8 +175,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
     });
 
     if (kycError) {
-      await logSecurityEvent('kyc_initiation_database_error', {
-        clientIP,
+      await logSecurityEvent('kyc_initiation_database_error', 'medium', request, {
+        
         userId: body.userId,
         error: kycError.message
       });
@@ -216,8 +215,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
       .single();
 
     if (detailsError || !verificationDetails) {
-      await logSecurityEvent('kyc_verification_details_error', {
-        clientIP,
+      await logSecurityEvent('kyc_verification_details_error', 'medium', request, {
+        
         userId: body.userId,
         verificationId
       });
@@ -251,8 +250,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
     }
 
     // Log successful initiation
-    await logSecurityEvent('kyc_verification_initiated_success', {
-      clientIP,
+    await logSecurityEvent('kyc_verification_initiated_success', 'medium', request, {
+      
       userId: body.userId,
       verificationId,
       verificationType: body.verificationType,
@@ -269,8 +268,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<KYCVerifi
     }, { status: 201 });
 
   } catch (error) {
-    await logSecurityEvent('kyc_initiation_unexpected_error', {
-      clientIP,
+    await logSecurityEvent('kyc_initiation_unexpected_error', 'medium', request, {
+      
       error: error instanceof Error ? error.message : 'Unknown error',
       processingTime: Date.now() - startTime
     });

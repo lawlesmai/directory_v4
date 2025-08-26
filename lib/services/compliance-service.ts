@@ -259,7 +259,7 @@ export class ComplianceService {
     try {
       const { data, error } = await this.supabase
         .from('compliance_alerts')
-        .insert({
+        .insert([{
           alert_type: alert.type,
           severity: alert.severity,
           verification_id: alert.verificationId,
@@ -271,7 +271,7 @@ export class ComplianceService {
           requires_action: alert.requiresAction,
           assigned_to: alert.assignedTo,
           status: alert.status
-        })
+        }])
         .select('id')
         .single();
 
@@ -502,7 +502,7 @@ export class ComplianceService {
     try {
       await this.supabase
         .from('kyc_audit_logs')
-        .insert({
+        .insert([{
           event_type: event.eventType,
           category: event.category,
           user_id: event.userId,
@@ -513,7 +513,7 @@ export class ComplianceService {
           ip_address: event.ipAddress,
           user_agent: event.userAgent,
           success: event.success
-        });
+        }]);
 
     } catch (error) {
       console.error('Failed to log audit event:', error);

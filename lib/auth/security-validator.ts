@@ -561,7 +561,7 @@ export class OAuthSecurityValidator {
     checks: any[]
   }): Promise<void> {
     try {
-      await this.supabase.from('auth_audit_logs').insert({
+      await this.(supabase as any).from('auth_audit_logs').insert({
         event_type: 'oauth_security_check',
         event_category: 'security',
         user_id: data.userId,

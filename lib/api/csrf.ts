@@ -131,5 +131,15 @@ export async function withCSRFProtection(req: NextRequest): Promise<CSRFResult> 
   return csrf.verifyToken(req);
 }
 
+// Additional helper functions for API routes
+export async function validateCSRFToken(req: NextRequest): Promise<CSRFResult> {
+  return csrf.verifyToken(req);
+}
+
+export async function validateCSRF(req: NextRequest): Promise<boolean> {
+  const result = await csrf.verifyToken(req);
+  return result.success;
+}
+
 export { CSRFProtection };
 export type { CSRFOptions, CSRFResult };

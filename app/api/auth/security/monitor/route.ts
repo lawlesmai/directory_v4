@@ -17,9 +17,9 @@ import { getClientIP } from '@/lib/security/server'
 const monitorQuerySchema = z.object({
   timeframe: z.enum(['1h', '24h', '7d', '30d']).default('24h'),
   userId: z.string().uuid().optional(),
-  includeAnomalies: z.string().transform(val => val === 'true').default(false),
-  includeMetrics: z.string().transform(val => val === 'true').default(true),
-  includeLockoutStatus: z.string().transform(val => val === 'true').default(true)
+  includeAnomalies: z.string().default('false').transform(val => val === 'true'),
+  includeMetrics: z.string().default('true').transform(val => val === 'true'),
+  includeLockoutStatus: z.string().default('true').transform(val => val === 'true')
 })
 
 export async function GET(request: NextRequest) {
@@ -54,12 +54,12 @@ export async function GET(request: NextRequest) {
 
     // Authorization check
     const requestedUserId = userId || user?.id
-    if (userId && userId !== user?.id) {
+    if (userId && userId !== user?.id && user?.id) {
       // Check if current user has admin privileges
-      const { data: userRoles } = await supabase
+      const { data: userRoles } = await (supabase as any)
         .from('user_roles')
         .select('role')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .eq('is_primary', true)
         .single()
 
@@ -171,14 +171,14 @@ export async function GET(request: NextRequest) {
     // Get recent security events for the user
     if (requestedUserId) {
       try {
-        const { data: recentEvents } = await supabase
+        const { data: recentEvents } = await (supabase as any)
           .from('account_security_events')
           .select('event_type, created_at, risk_score, metadata')
           .eq('user_id', requestedUserId)
           .order('created_at', { ascending: false })
           .limit(10)
 
-        responseData.recentEvents = recentEvents?.map(event => ({
+        responseData.recentEvents = recentEvents?.map((event: any) => ({
           type: event.event_type,
           timestamp: event.created_at,
           riskScore: event.risk_score,
@@ -238,9 +238,9 @@ export async function POST(request: NextRequest) {
     const { type, description, severity, evidence } = validationResult.data
 
     // Create security incident
-    const { data: incident, error: insertError } = await supabase
+    const { data: incident, error: insertError } = await (supabase as any)
       .from('security_incidents')
-      .insert({
+      .insert([{
         incident_type: type,
         severity,
         user_id: user.id,
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
         evidence: evidence || {},
         status: 'open',
         admin_notified: severity === 'critical'
-      })
+      }])
       .select('id')
       .single()
 
@@ -263,9 +263,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the incident reporting
-    await supabase
+    await (supabase as any)
       .from('account_security_events')
-      .insert({
+      .insert([{
         user_id: user.id,
         event_type: 'security_incident_reported',
         ip_address: clientIP,
@@ -276,7 +276,7 @@ export async function POST(request: NextRequest) {
           severity,
           reportedBy: 'user'
         }
-      })
+      }])
 
     return NextResponse.json({
       success: true,

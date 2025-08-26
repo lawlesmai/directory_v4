@@ -1,7 +1,76 @@
 import { NextRequest } from 'next/server';
 
 interface SecurityEvent {
-  type: 'suspicious_activity' | 'rate_limit_exceeded' | 'auth_failure' | 'csrf_violation' | 'malicious_request';
+  type: 
+    // Generic security events
+    | 'suspicious_activity' 
+    | 'rate_limit_exceeded' 
+    | 'auth_failure' 
+    | 'csrf_violation' 
+    | 'malicious_request'
+    // Authentication events
+    | 'authentication_bypass_attempt'
+    | 'admin_action_suspicious'
+    // KYC-specific events
+    | 'kyc_admin_review_invalid_request'
+    | 'kyc_admin_review_csrf_validation_failed'
+    | 'kyc_admin_review_unauthenticated'
+    | 'kyc_admin_review_unauthorized'
+    | 'kyc_admin_review_verification_not_found'
+    | 'kyc_admin_review_processing_error'
+    | 'kyc_verification_escalated'
+    | 'kyc_compliance_flagged'
+    | 'kyc_admin_review_completed'
+    | 'kyc_admin_review_unexpected_error'
+    | 'kyc_appeal_rate_limited'
+    | 'kyc_upload_rate_limited'
+    | 'kyc_verification_initiated'
+    | 'kyc_document_uploaded'
+    | 'kyc_document_processing_failed'
+    // KYC Appeals events
+    | 'kyc_appeal_invalid_request'
+    | 'kyc_appeal_csrf_validation_failed'
+    | 'kyc_appeal_unauthenticated'
+    | 'kyc_appeal_verification_not_found'
+    | 'kyc_appeal_unauthorized'
+    | 'kyc_appeal_creation_error'
+    | 'kyc_appeal_created_success'
+    | 'kyc_appeal_unexpected_error'
+    | 'kyc_appeals_fetch_error'
+    | 'kyc_appeals_unexpected_error'
+    // KYC Status events
+    | 'kyc_status_invalid_request'
+    | 'kyc_status_unauthenticated'
+    | 'kyc_status_verification_not_found'
+    | 'kyc_status_unauthorized'
+    | 'kyc_status_check_success'
+    | 'kyc_status_unexpected_error'
+    // KYC Initiation events
+    | 'kyc_initiation_rate_limited'
+    | 'kyc_initiation_invalid_request'
+    | 'kyc_initiation_csrf_validation_failed'
+    | 'kyc_initiation_unauthenticated'
+    | 'kyc_initiation_unauthorized'
+    | 'kyc_initiation_business_unauthorized'
+    | 'kyc_initiation_database_error'
+    | 'kyc_verification_details_error'
+    | 'kyc_verification_initiated_success'
+    | 'kyc_initiation_unexpected_error'
+    // KYC Upload events
+    | 'kyc_upload_unauthenticated'
+    | 'kyc_upload_invalid_request'
+    | 'kyc_upload_csrf_validation_failed'
+    | 'kyc_upload_file_too_large'
+    | 'kyc_upload_invalid_mime_type'
+    | 'kyc_upload_verification_not_found'
+    | 'kyc_upload_unauthorized'
+    | 'kyc_upload_duplicate_check_error'
+    | 'kyc_upload_duplicate_detected'
+    | 'kyc_upload_storage_error'
+    | 'kyc_upload_database_error'
+    | 'kyc_upload_cleanup_error'
+    | 'kyc_document_uploaded_success'
+    | 'kyc_upload_unexpected_error';
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp: number;
   ip?: string;

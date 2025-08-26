@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
         // Insert into a business_click_analytics table (would need to be created)
         const { data, error } = await supabase
           .from('business_click_analytics')
-          .insert({
+          .insert([{
             business_id: businessId,
             business_name: businessName,
             search_query: query,
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
             user_agent: userAgent,
             session_id: sessionId,
             ip_address: clientIP,
-          });
+          }]);
 
         if (error) {
           console.error('Failed to track business click:', error);

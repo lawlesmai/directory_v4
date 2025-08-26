@@ -221,7 +221,7 @@ export async function PUT(request: NextRequest) {
     const completion = await profileCompletionManager.updateCompletionAndCheckAchievements(userId)
 
     // Log profile update
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'profile_update',
       event_category: 'profile',
       user_id: userId,
@@ -345,7 +345,7 @@ export async function PATCH(request: NextRequest) {
     const { completion } = await profileCompletionManager.updateCompletionAndCheckAchievements(userId)
 
     // Log field update
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'profile_field_update',
       event_category: 'profile',
       user_id: userId,
@@ -441,7 +441,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Log profile deletion
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'profile_deletion',
       event_category: 'profile',
       user_id: userId,

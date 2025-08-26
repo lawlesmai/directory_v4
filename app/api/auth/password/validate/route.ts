@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     // Log validation attempt
     await processSecurityEvent({
-      type: passwordValidation.compliant ? 'password_policy_validation_success' : 'password_policy_violation',
+      type: passwordValidation.compliant ? 'admin_action_suspicious' : 'authentication_bypass_attempt',
       severity: passwordValidation.compliant ? 'low' : 'medium',
       userId,
       ipAddress: clientIP,

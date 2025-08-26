@@ -570,19 +570,18 @@ export function updatePreferenceOptimistic(
 }
 
 // React hooks for preference subscriptions (if using React)
+// React hooks for preference subscriptions (if using React)
 export function useRealtimePreferences(
   userId: string,
   categories?: string[]
 ) {
-  if (typeof window === 'undefined') return null
-
   const [preferences, setPreferences] = useState<UserPreference[]>([])
   const [conflicts, setConflicts] = useState<PreferenceConflict[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    if (!userId) return
+    if (typeof window === 'undefined' || !userId) return
 
     const subscription = subscribeToUserPreferences(
       userId,
@@ -630,6 +629,8 @@ export function useRealtimePreferences(
     }
   }, [userId, categories])
 
+  if (typeof window === 'undefined') return null
+
   return {
     preferences,
     conflicts,
@@ -642,8 +643,7 @@ export function useRealtimePreferences(
   }
 }
 
-// React hooks imports (only if React is available)
-let useState: any, useEffect: any
+// Conditional React hooks support
 try {
   const React = require('react')
   useState = React.useState

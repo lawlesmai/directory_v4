@@ -568,7 +568,7 @@ export class AccountLinkingManager {
     metadata?: any
   }) {
     try {
-      await this.supabase.from('auth_audit_logs').insert({
+      await (this.supabase as any).from('auth_audit_logs').insert({
         event_type: eventType,
         event_category: 'account_linking',
         user_id: userId,

@@ -14,9 +14,9 @@ import { logSecurityEvent } from '@/lib/api/security-monitoring';
 // Query parameter validation schema
 const statusQuerySchema = z.object({
   verificationId: z.string().uuid('Invalid verification ID format'),
-  includeDocuments: z.enum(['true', 'false']).transform(val => val === 'true').optional().default(false),
-  includeRiskAssessment: z.enum(['true', 'false']).transform(val => val === 'true').optional().default(false),
-  includeWorkflow: z.enum(['true', 'false']).transform(val => val === 'true').optional().default(true)
+  includeDocuments: z.enum(['true', 'false']).transform(val => val === 'true').optional().default('false'),
+  includeRiskAssessment: z.enum(['true', 'false']).transform(val => val === 'true').optional().default('false'),
+  includeWorkflow: z.enum(['true', 'false']).transform(val => val === 'true').optional().default('true')
 });
 
 interface DocumentInfo {
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
   try {
     // Rate limiting - 60 requests per hour per IP
     const rateLimitResult = await rateLimit('kyc-status', clientIP, 60, 3600);
-    if (!rateLimitResult.success) {
+    if (!rateLimitResult.allowed) {
       return NextResponse.json({
         success: false,
         error: 'Too many status check requests. Please try again later.',
@@ -121,8 +121,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
     try {
       validatedQuery = statusQuerySchema.parse(queryParams);
     } catch (error) {
-      await logSecurityEvent('kyc_status_invalid_request', {
-        clientIP,
+      await logSecurityEvent('kyc_status_invalid_request', 'medium', request, {
+        
         error: error instanceof Error ? error.message : 'Unknown validation error'
       });
       
@@ -139,8 +139,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      await logSecurityEvent('kyc_status_unauthenticated', {
-        clientIP,
+      await logSecurityEvent('kyc_status_unauthenticated', 'medium', request, {
+        
         verificationId: validatedQuery.verificationId
       });
       
@@ -166,8 +166,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
       .single();
 
     if (verificationError || !verification) {
-      await logSecurityEvent('kyc_status_verification_not_found', {
-        clientIP,
+      await logSecurityEvent('kyc_status_verification_not_found', 'medium', request, {
+        
         userId: user.id,
         verificationId: validatedQuery.verificationId
       });
@@ -188,8 +188,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
       });
 
       if (!hasPermission) {
-        await logSecurityEvent('kyc_status_unauthorized', {
-          clientIP,
+        await logSecurityEvent('kyc_status_unauthorized', 'medium', request, {
+          
           userId: user.id,
           verificationId: validatedQuery.verificationId,
           verificationUserId: verification.user_id
@@ -222,7 +222,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
         reviewedAt: verification.reviewed_at,
         decidedAt: verification.decided_at,
         expiresAt: verification.expires_at,
-        assignedReviewer: verification.auth_users_assigned_reviewer?.email,
+        assignedReviewer: (verification as any).auth_users_assigned_reviewer?.email || 
+          ((verification as any).auth_users_assigned_reviewer?.[0]?.email),
         estimatedCompletion: verification.estimated_completion
       }
     };
@@ -241,9 +242,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
         .order('created_at', { ascending: true });
 
       if (!documentsError && documents) {
-        response.verification!.documents = documents.map(doc => ({
+        response.verification!.documents = documents.map((doc: any) => ({
           id: doc.id,
-          documentType: doc.kyc_document_types?.display_name || doc.kyc_document_types?.type_code || 'Unknown',
+          documentType: (doc as any).kyc_document_types?.display_name || (doc as any).kyc_document_types?.type_code || 'Unknown',
           fileName: doc.file_name,
           uploadedAt: doc.created_at,
           ocrStatus: doc.ocr_status,
@@ -335,8 +336,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
     }
 
     // Log successful status check
-    await logSecurityEvent('kyc_status_check_success', {
-      clientIP,
+    await logSecurityEvent('kyc_status_check_success', 'medium', request, {
+      
       userId: user.id,
       verificationId: validatedQuery.verificationId,
       status: verification.status,
@@ -349,8 +350,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<Verificati
     return NextResponse.json(response, { status: 200 });
 
   } catch (error) {
-    await logSecurityEvent('kyc_status_unexpected_error', {
-      clientIP,
+    await logSecurityEvent('kyc_status_unexpected_error', 'medium', request, {
+      
       error: error instanceof Error ? error.message : 'Unknown error',
       processingTime: Date.now() - startTime
     });

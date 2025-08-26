@@ -1,7 +1,6 @@
 ---
 name: quality-fixer
 description: Use this agent when you need to systematically fix code quality issues, warnings, and critical problems identified by a grader or quality assessment tool. This agent should be used after receiving a grade report that shows issues needing resolution. Examples: <example>Context: User has run a code quality assessment that returned warnings and critical issues. user: 'The grader found 3 critical security vulnerabilities and 5 code quality warnings in my authentication module' assistant: 'I'll use the quality-fixer agent to systematically address these issues and achieve an A grade with no critical problems' <commentary>The user has quality issues that need systematic fixing, so use the quality-fixer agent to resolve them iteratively.</commentary></example> <example>Context: After implementing a feature, the code needs quality improvement. user: 'I just finished the payment processing feature but want to make sure it meets our quality standards' assistant: 'Let me use the quality-fixer agent to run a comprehensive quality check and fix any issues found' <commentary>Proactive quality improvement is needed, so use the quality-fixer agent to ensure high standards.</commentary></example>
-tools: Bash, Glob, Grep, LS, Read, WebFetch, TodoWrite, WebSearch, BashOutput, KillBash, mcp__ide__getDiagnostics, mcp__ide__executeCode
 model: sonnet
 color: pink
 ---

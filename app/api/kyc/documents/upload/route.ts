@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { rateLimit } from '@/lib/api/rate-limit';
 import { validateCSRF } from '@/lib/api/csrf';
 import { logSecurityEvent } from '@/lib/api/security-monitoring';
-import { uploadFile, generateFileHash } from '@/lib/api/file-storage';
+import { uploadFile, deleteFile, generateFileHash } from '@/lib/api/file-storage';
 import crypto from 'crypto';
 
 // Validation schema
@@ -51,10 +51,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
   try {
     // Rate limiting - 10 uploads per hour per IP
     const rateLimitResult = await rateLimit('kyc-upload', clientIP, 10, 3600);
-    if (!rateLimitResult.success) {
-      await logSecurityEvent('kyc_upload_rate_limited', {
-        clientIP,
-        remainingAttempts: rateLimitResult.remaining
+    if (!rateLimitResult.allowed) {
+      await logSecurityEvent('kyc_upload_rate_limited', 'medium', request, {
+        retryAfter: rateLimitResult.retryAfter
       });
       
       return NextResponse.json({
@@ -70,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      await logSecurityEvent('kyc_upload_unauthenticated', { clientIP });
+      await logSecurityEvent('kyc_upload_unauthenticated', 'medium', request, { clientIP });
       
       return NextResponse.json({
         success: false,
@@ -107,8 +106,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
         csrfToken
       });
     } catch (error) {
-      await logSecurityEvent('kyc_upload_invalid_request', {
-        clientIP,
+      await logSecurityEvent('kyc_upload_invalid_request', 'medium', request, {
+        
         userId: user.id,
         error: error instanceof Error ? error.message : 'Unknown validation error'
       });
@@ -121,9 +120,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
     }
 
     // CSRF validation
-    if (!await validateCSRF(csrfToken, request)) {
-      await logSecurityEvent('kyc_upload_csrf_validation_failed', {
-        clientIP,
+    if (!await validateCSRF(request)) {
+      await logSecurityEvent('kyc_upload_csrf_validation_failed', 'medium', request, {
+        
         userId: user.id,
         verificationId
       });
@@ -146,8 +145,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
 
     // File size validation
     if (file.size > MAX_FILE_SIZE) {
-      await logSecurityEvent('kyc_upload_file_too_large', {
-        clientIP,
+      await logSecurityEvent('kyc_upload_file_too_large', 'medium', request, {
+        
         userId: user.id,
         fileSize: file.size,
         fileName: file.name
@@ -162,8 +161,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
 
     // MIME type validation
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      await logSecurityEvent('kyc_upload_invalid_mime_type', {
-        clientIP,
+      await logSecurityEvent('kyc_upload_invalid_mime_type', 'medium', request, {
+        
         userId: user.id,
         mimeType: file.type,
         fileName: file.name
@@ -194,8 +193,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
       .single();
 
     if (verificationError || !verification) {
-      await logSecurityEvent('kyc_upload_verification_not_found', {
-        clientIP,
+      await logSecurityEvent('kyc_upload_verification_not_found', 'medium', request, {
+        
         userId: user.id,
         verificationId
       });
@@ -216,8 +215,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
       });
 
       if (!hasPermission) {
-        await logSecurityEvent('kyc_upload_unauthorized', {
-          clientIP,
+        await logSecurityEvent('kyc_upload_unauthorized', 'medium', request, {
+          
           userId: user.id,
           verificationId,
           verificationUserId: verification.user_id
@@ -280,16 +279,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
       .limit(1);
 
     if (dupError) {
-      await logSecurityEvent('kyc_upload_duplicate_check_error', {
-        clientIP,
+      await logSecurityEvent('kyc_upload_duplicate_check_error', 'medium', request, {
+        
         userId: user.id,
         error: dupError.message
       });
     }
 
     if (duplicateCheck && duplicateCheck.length > 0) {
-      await logSecurityEvent('kyc_upload_duplicate_detected', {
-        clientIP,
+      await logSecurityEvent('kyc_upload_duplicate_detected', 'medium', request, {
+        
         userId: user.id,
         fileHash,
         originalVerificationId: duplicateCheck[0].verification_id
@@ -309,22 +308,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
     const filePath = `kyc-documents/${verification.user_id}/${verificationId}/${secureFileName}`;
 
     // Upload file to secure storage
-    const uploadResult = await uploadFile(fileBuffer, filePath, {
-      contentType: file.type,
-      metadata: {
-        originalName: file.name,
-        userId: user.id,
-        verificationId,
-        documentType,
-        uploadedAt: new Date().toISOString()
-      }
-    });
+    const uploadResult = await uploadFile(file, filePath);
 
     if (!uploadResult.success) {
-      await logSecurityEvent('kyc_upload_storage_error', {
-        clientIP,
+      await logSecurityEvent('kyc_upload_storage_error', 'medium', request, {
         userId: user.id,
-        error: uploadResult.error,
+        message: uploadResult.message,
         fileName: file.name
       });
       
@@ -348,8 +337,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
     });
 
     if (dbError) {
-      await logSecurityEvent('kyc_upload_database_error', {
-        clientIP,
+      await logSecurityEvent('kyc_upload_database_error', 'medium', request, {
+        
         userId: user.id,
         error: dbError.message,
         fileName: file.name
@@ -357,11 +346,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
 
       // Clean up uploaded file on database error
       try {
-        await uploadFile(null, filePath, { delete: true });
+        await deleteFile(filePath);
       } catch (cleanupError) {
         // Log but don't fail the response
-        await logSecurityEvent('kyc_upload_cleanup_error', {
-          clientIP,
+        await logSecurityEvent('kyc_upload_cleanup_error', 'medium', request, {
+          
           userId: user.id,
           filePath,
           error: cleanupError instanceof Error ? cleanupError.message : 'Unknown cleanup error'
@@ -387,8 +376,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
       .single();
 
     // Log successful upload
-    await logSecurityEvent('kyc_document_uploaded_success', {
-      clientIP,
+    await logSecurityEvent('kyc_document_uploaded_success', 'medium', request, {
+      
       userId: user.id,
       documentId,
       verificationId,
@@ -407,8 +396,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<DocumentU
     }, { status: 201 });
 
   } catch (error) {
-    await logSecurityEvent('kyc_upload_unexpected_error', {
-      clientIP,
+    await logSecurityEvent('kyc_upload_unexpected_error', 'medium', request, {
+      
       error: error instanceof Error ? error.message : 'Unknown error',
       processingTime: Date.now() - startTime
     });

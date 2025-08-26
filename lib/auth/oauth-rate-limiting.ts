@@ -402,7 +402,7 @@ export class OAuthRateLimiter {
     context?: Record<string, any>
   }): Promise<void> {
     try {
-      await this.supabase.from('auth_audit_logs').insert({
+      await (this.supabase as any).from('auth_audit_logs').insert({
         event_type: 'rate_limit_event',
         event_category: 'security',
         success: event.action === 'success',

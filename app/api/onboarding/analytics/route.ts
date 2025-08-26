@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     if (rolesError) throw rolesError;
 
-    const hasAdminRole = userRoles?.some(ur => 
+    const hasAdminRole = userRoles?.some((ur: any) => 
       ['admin', 'super_admin'].includes((ur.roles as any).name)
     );
 
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
 
         // Get analytics for each flow
         const flowsWithAnalytics = await Promise.all(
-          (flows || []).map(async (flow) => {
+          (flows || []).map(async (flow: any) => {
             const analytics = await onboardingAnalyticsService.generateFlowAnalytics(
               flow.id,
               dateRange

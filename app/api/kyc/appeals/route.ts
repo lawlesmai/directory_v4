@@ -66,10 +66,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
   try {
     // Rate limiting - 2 appeals per day per IP
     const rateLimitResult = await rateLimit('kyc-appeal-create', clientIP, 2, 24 * 3600);
-    if (!rateLimitResult.success) {
-      await logSecurityEvent('kyc_appeal_rate_limited', {
-        clientIP,
-        remainingAttempts: rateLimitResult.remaining
+    if (!rateLimitResult.allowed) {
+      await logSecurityEvent('kyc_appeal_rate_limited', 'medium', request, {
+        retryAfter: rateLimitResult.retryAfter
       });
       
       return NextResponse.json({
@@ -85,8 +84,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
       const rawBody = await request.json();
       body = createAppealSchema.parse(rawBody);
     } catch (error) {
-      await logSecurityEvent('kyc_appeal_invalid_request', {
-        clientIP,
+      await logSecurityEvent('kyc_appeal_invalid_request', 'medium', request, {
+        
         error: error instanceof Error ? error.message : 'Unknown validation error'
       });
       
@@ -98,9 +97,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
     }
 
     // CSRF validation
-    if (!await validateCSRF(body.csrfToken, request)) {
-      await logSecurityEvent('kyc_appeal_csrf_validation_failed', {
-        clientIP,
+    if (!await validateCSRF(request)) {
+      await logSecurityEvent('kyc_appeal_csrf_validation_failed', 'medium', request, {
+        
         verificationId: body.verificationId
       });
       
@@ -117,8 +116,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      await logSecurityEvent('kyc_appeal_unauthenticated', {
-        clientIP,
+      await logSecurityEvent('kyc_appeal_unauthenticated', 'medium', request, {
+        
         verificationId: body.verificationId
       });
       
@@ -137,8 +136,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
       .single();
 
     if (verificationError || !verification) {
-      await logSecurityEvent('kyc_appeal_verification_not_found', {
-        clientIP,
+      await logSecurityEvent('kyc_appeal_verification_not_found', 'medium', request, {
+        
         userId: user.id,
         verificationId: body.verificationId
       });
@@ -159,8 +158,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
       });
 
       if (!hasPermission) {
-        await logSecurityEvent('kyc_appeal_unauthorized', {
-          clientIP,
+        await logSecurityEvent('kyc_appeal_unauthorized', 'medium', request, {
+          
           userId: user.id,
           verificationId: body.verificationId,
           verificationUserId: verification.user_id
@@ -215,7 +214,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
     // Create the appeal
     const { data: appeal, error: appealError } = await supabase
       .from('kyc_appeals')
-      .insert({
+      .insert([{
         verification_id: body.verificationId,
         appellant_id: user.id,
         appeal_reason: body.appealReason,
@@ -223,13 +222,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
         supporting_evidence: body.supportingEvidence || [],
         status: 'submitted',
         resolution_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-      })
+      }])
       .select('id, status, submitted_at, resolution_deadline')
       .single();
 
     if (appealError || !appeal) {
-      await logSecurityEvent('kyc_appeal_creation_error', {
-        clientIP,
+      await logSecurityEvent('kyc_appeal_creation_error', 'medium', request, {
+        
         userId: user.id,
         verificationId: body.verificationId,
         error: appealError?.message
@@ -245,17 +244,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
     // Add to high priority review queue
     await supabase
       .from('kyc_review_queue')
-      .insert({
+      .insert([{
         verification_id: body.verificationId,
         queue_type: 'appeal',
         priority_score: 85,
         sla_target_hours: 48,
         deadline: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
-      });
+      }]);
 
     // Log successful appeal creation
-    await logSecurityEvent('kyc_appeal_created_success', {
-      clientIP,
+    await logSecurityEvent('kyc_appeal_created_success', 'medium', request, {
+      
       userId: user.id,
       appealId: appeal.id,
       verificationId: body.verificationId,
@@ -275,8 +274,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AppealRes
     }, { status: 201 });
 
   } catch (error) {
-    await logSecurityEvent('kyc_appeal_unexpected_error', {
-      clientIP,
+    await logSecurityEvent('kyc_appeal_unexpected_error', 'medium', request, {
+      
       error: error instanceof Error ? error.message : 'Unknown error',
       processingTime: Date.now() - startTime
     });
@@ -296,7 +295,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<AppealResp
   try {
     // Rate limiting - 20 requests per hour
     const rateLimitResult = await rateLimit('kyc-appeal-get', clientIP, 20, 3600);
-    if (!rateLimitResult.success) {
+    if (!rateLimitResult.allowed) {
       return NextResponse.json({
         success: false,
         error: 'Too many requests. Please try again later.',
@@ -350,8 +349,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<AppealResp
     const { data: appeals, error: appealsError, count } = await query;
 
     if (appealsError) {
-      await logSecurityEvent('kyc_appeals_fetch_error', {
-        clientIP,
+      await logSecurityEvent('kyc_appeals_fetch_error', 'medium', request, {
+        
         userId: user.id,
         error: appealsError.message
       });
@@ -365,7 +364,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<AppealResp
 
     return NextResponse.json({
       success: true,
-      appeals: (appeals || []).map(appeal => ({
+      appeals: (appeals || []).map((appeal: any) => ({
         id: appeal.id,
         verificationId: appeal.verification_id,
         appealReason: appeal.appeal_reason,
@@ -383,8 +382,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<AppealResp
     }, { status: 200 });
 
   } catch (error) {
-    await logSecurityEvent('kyc_appeals_unexpected_error', {
-      clientIP,
+    await logSecurityEvent('kyc_appeals_unexpected_error', 'medium', request, {
+      
       error: error instanceof Error ? error.message : 'Unknown error'
     });
 

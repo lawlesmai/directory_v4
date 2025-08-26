@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's OAuth connection for this provider
-    const { data: connection, error: connectionError } = await supabase
+    const { data: connection, error: connectionError } = await (supabase as any)
       .from('user_oauth_connections')
       .select(`
         provider_data,
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const syncResult = await profileSync.syncProviderProfile(
       userId,
       provider as OAuthProvider,
-      connection.provider_data,
+      (connection as any).provider_data,
       options
     )
 

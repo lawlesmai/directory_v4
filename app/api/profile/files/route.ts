@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
 
     // If avatar upload, update profile
     if (category === 'avatar' && uploadResult.file?.public_url) {
-      await supabase
+      await (supabase as any)
         .from('profiles')
         .update({
           avatar_url: uploadResult.file.public_url,
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log file upload
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'file_upload',
       event_category: 'files',
       user_id: userId,
@@ -291,7 +291,7 @@ export async function DELETE(request: NextRequest) {
     // If deleted file was avatar, clear from profile
     const file = await fileManager.getFile(fileId, userId)
     if (file?.file_category === 'avatar') {
-      await supabase
+      await (supabase as any)
         .from('profiles')
         .update({
           avatar_url: null,
@@ -301,7 +301,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Log file deletion
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'file_deletion',
       event_category: 'files',
       user_id: userId,

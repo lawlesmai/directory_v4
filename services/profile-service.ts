@@ -4,11 +4,11 @@ export const syncSocialProfile = async (userId: string, socialProfile: any) => {
   try {
     const { data, error } = await supabase
       .from('social_profiles')
-      .insert({
+      .insert([{
         user_id: userId,
         provider: socialProfile.provider,
         profile_data: socialProfile.profileData
-      });
+      }]);
 
     if (error) throw error;
 

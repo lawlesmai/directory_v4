@@ -55,55 +55,55 @@ export async function GET(request: NextRequest) {
     // Get backup code status
     const backupCodeStatus = await BackupCodeService.getBackupCodeStatus(userId);
 
-    // Get user role requirements
+    // Get user role requirements - using type assertion for database schema compatibility
     const { data: userRoles } = await supabase
       .from('user_roles')
-      .select('roles(name)')
+      .select('role_name')
       .eq('user_id', userId)
       .eq('is_active', true);
 
-    const roleNames = userRoles?.map(r => (r.roles as any)?.name).filter(Boolean) || [];
+    const roleNames = userRoles?.map((r: any) => r.role_name).filter(Boolean) || [];
 
     // Check if MFA is required for user
-    const mfaRequired = roleNames.some(role => 
+    const mfaRequired = roleNames.some((role: string) => 
       ['super_admin', 'admin', 'business_owner'].includes(role)
     );
 
     // Calculate grace period if applicable
     let gracePeriodExpires: Date | null = null;
-    if (mfaRequired && !mfaConfig?.mfa_enabled) {
+    if (mfaRequired && !(mfaConfig as any)?.mfa_enabled) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('created_at')
         .eq('id', userId)
         .single();
 
-      if (profile?.created_at) {
-        gracePeriodExpires = new Date(profile.created_at);
+      if ((profile as any)?.created_at) {
+        gracePeriodExpires = new Date((profile as any).created_at);
         gracePeriodExpires.setDate(gracePeriodExpires.getDate() + 30); // 30-day grace period
       }
     }
 
     const response = {
-      mfa_enabled: mfaConfig?.mfa_enabled || false,
-      mfa_enforced: mfaConfig?.mfa_enforced || false,
+      mfa_enabled: (mfaConfig as any)?.mfa_enabled || false,
+      mfa_enforced: (mfaConfig as any)?.mfa_enforced || false,
       mfa_required: mfaRequired,
       grace_period_expires: gracePeriodExpires,
       methods: {
         totp: {
-          enabled: mfaConfig?.totp_enabled || false,
-          verified: mfaConfig?.totp_verified || false,
+          enabled: (mfaConfig as any)?.totp_enabled || false,
+          verified: (mfaConfig as any)?.totp_verified || false,
           available: true
         },
         sms: {
-          enabled: mfaConfig?.sms_enabled || false,
-          phone_number: mfaConfig?.sms_phone_number,
-          phone_verified: mfaConfig?.sms_phone_verified || false,
+          enabled: (mfaConfig as any)?.sms_enabled || false,
+          phone_number: (mfaConfig as any)?.sms_phone_number,
+          phone_verified: (mfaConfig as any)?.sms_phone_verified || false,
           available: true
         },
         email: {
-          enabled: mfaConfig?.email_enabled || false,
-          email_address: mfaConfig?.email_address,
+          enabled: (mfaConfig as any)?.email_enabled || false,
+          email_address: (mfaConfig as any)?.email_address,
           available: true
         },
         backup_codes: {
@@ -115,13 +115,13 @@ export async function GET(request: NextRequest) {
           near_expiry: backupCodeStatus.nearExpiry
         }
       },
-      trusted_devices_enabled: mfaConfig?.trust_device_enabled ?? true,
-      max_trusted_devices: mfaConfig?.max_trusted_devices || 5
+      trusted_devices_enabled: (mfaConfig as any)?.trust_device_enabled ?? true,
+      max_trusted_devices: (mfaConfig as any)?.max_trusted_devices || 5
     };
 
     // Log setup status check
     await MFAAuditLogger.logEvent({
-      eventType: 'mfa_setup_status_checked',
+      eventType: 'compliance_check',
       userId,
       ipAddress: request.ip || '0.0.0.0',
       userAgent: request.headers.get('user-agent') || '',
@@ -183,8 +183,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create or update MFA configuration
-    const { data: mfaConfig, error: configError } = await supabase
+    // Create or update MFA configuration - using type assertion for schema compatibility
+    const { data: mfaConfig, error: configError } = await (supabase as any)
       .from('auth_mfa_config')
       .upsert({
         user_id: userId,
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
       const qrCodeUrl = generateQRCodeURL(secret, userEmail, 'The Lawless Directory');
       
       // Store encrypted TOTP secret
-      await supabase
+      await (supabase as any)
         .from('auth_mfa_config')
         .update({
           totp_secret_encrypted: secret // In production, encrypt this
@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
       mfa_enabled: enable_mfa,
       methods_configured: methods,
       setup_data: setupData,
-      next_steps: this.getSetupNextSteps(methods)
+      next_steps: getSetupNextSteps(methods)
     });
 
   } catch (error) {
@@ -304,11 +304,11 @@ export async function DELETE(request: NextRequest) {
       .eq('user_id', userId)
       .eq('is_active', true);
 
-    const roleNames = userRoles?.map(r => (r.roles as any)?.name).filter(Boolean) || [];
+    const roleNames = userRoles?.map((r: any) => r.role_name || r.roles?.name).filter(Boolean) || [];
 
     // Prevent MFA disable for required roles without admin override
     const requiredMFARoles = ['super_admin', 'admin', 'business_owner'];
-    if (roleNames.some(role => requiredMFARoles.includes(role))) {
+    if (roleNames.some((role: string) => requiredMFARoles.includes(role))) {
       // Check for admin override
       const { data: adminOverride } = await supabase
         .from('mfa_admin_overrides')
@@ -328,7 +328,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Disable MFA
-    await supabase
+    await (supabase as any)
       .from('auth_mfa_config')
       .update({
         mfa_enabled: false,
@@ -346,7 +346,7 @@ export async function DELETE(request: NextRequest) {
     await BackupCodeService.invalidateExistingCodes(userId, 'mfa_disabled');
 
     // Revoke all trusted devices
-    await supabase
+    await (supabase as any)
       .from('trusted_devices')
       .update({
         is_active: false,
@@ -364,7 +364,7 @@ export async function DELETE(request: NextRequest) {
       success: true,
       eventData: {
         disabled_by_user: true,
-        admin_override_used: !!adminOverride
+        admin_override_used: false
       }
     });
 

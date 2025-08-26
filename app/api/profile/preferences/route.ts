@@ -179,7 +179,7 @@ export async function PUT(request: NextRequest) {
     const result = await preferencesManager.bulkUpdateUserPreferences(userId, bulkUpdates)
 
     // Log preferences update
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'preferences_bulk_update',
       event_category: 'preferences',
       user_id: userId,
@@ -291,7 +291,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Log preference update
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'preference_update',
       event_category: 'preferences',
       user_id: userId,
@@ -397,7 +397,7 @@ export async function DELETE(request: NextRequest) {
     const defaultValue = template ? template.default_value : null
 
     // Log preference reset
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'preference_reset',
       event_category: 'preferences',
       user_id: userId,

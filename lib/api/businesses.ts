@@ -857,4 +857,17 @@ export const getAllBusinessSlugs = async (): Promise<Array<{ category: string; s
   }
 };
 
+// Server-side API for Next.js API routes
+export const businessServerApi = {
+  getBusinesses: businessApi.getBusinesses,
+  getBusinessBySlug,
+  getFeaturedBusinesses: businessApi.getFeaturedBusinesses,
+  getBusinessCategories: businessApi.getBusinessCategories,
+  getBusinessesByCategory,
+  getAllBusinessSlugs,
+};
+
+// Client-side API for components
+export const businessClientApi = businessApi;
+
 export default businessApi;

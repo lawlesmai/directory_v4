@@ -682,7 +682,7 @@ export class SecurityAnalyticsEngine {
     
     // Add ML predictions
     if (!enriched.mlPredictions) {
-      enriched.mlPredictions = await this.getMLP redictions(enriched)
+      enriched.mlPredictions = await this.getMLPredictions(enriched)
     }
     
     // Add compliance data

@@ -188,5 +188,14 @@ export function validateFileUpload(file: File, options?: FileUploadOptions): { v
   return service.validateFile(file);
 }
 
+export async function generateFileHash(file: File): Promise<string> {
+  const crypto = await import('crypto');
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const hash = crypto.createHash('sha256');
+  hash.update(buffer);
+  return hash.digest('hex');
+}
+
 export { FileUploadService, LocalStorageProvider };
 export type { FileUploadOptions, UploadResult, StorageProvider };

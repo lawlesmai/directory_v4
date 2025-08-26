@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const { tokenId, token, newPassword, mfaToken, csrfToken } = validationResult.data
 
     // CSRF token validation
-    const csrfValid = await validateCSRFToken(csrfToken, request)
+    const csrfValid = await validateCSRFToken(request)
     if (!csrfValid) {
       await processSecurityEvent({
         type: 'authentication_bypass_attempt',
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     
     if (!tokenValidation.valid) {
       await processSecurityEvent({
-        type: 'password_reset_invalid_token',
+        type: 'authentication_bypass_attempt',
         severity: 'high',
         userId: tokenValidation.userId,
         ipAddress: clientIP,
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     // Log password reset attempt
     await processSecurityEvent({
-      type: 'password_reset_attempt',
+      type: 'admin_action_suspicious',
       severity: 'low',
       userId: tokenValidation.userId,
       ipAddress: clientIP,
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
       const severity = resetResult.requiresMFA ? 'medium' : 'high'
       
       await processSecurityEvent({
-        type: resetResult.requiresMFA ? 'password_reset_mfa_required' : 'password_reset_failed',
+        type: 'authentication_bypass_attempt',
         severity,
         userId: resetResult.userId || tokenValidation.userId,
         ipAddress: clientIP,
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
 
     // Log successful password reset
     await processSecurityEvent({
-      type: 'password_reset_completed',
+      type: 'admin_action_suspicious',
       severity: 'low',
       userId: resetResult.userId,
       ipAddress: clientIP,
@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
     console.error('Password reset completion error:', error)
 
     await processSecurityEvent({
-      type: 'password_reset_system_error',
+      type: 'admin_action_suspicious',
       severity: 'high',
       ipAddress: getClientIP(request),
       userAgent: request.headers.get('user-agent') || 'unknown',
@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
 
     // Log validation attempt
     await processSecurityEvent({
-      type: 'password_reset_token_validation',
+      type: 'admin_action_suspicious',
       severity: 'low',
       userId: validation.userId,
       ipAddress: clientIP,

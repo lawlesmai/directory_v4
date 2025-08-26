@@ -448,7 +448,7 @@ export async function logAuthEvent(
     const headersList = await headers()
     const supabase = await createServerSupabaseClient()
     
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: eventType,
       event_category: getEventCategory(eventType),
       user_id: user?.id || null,

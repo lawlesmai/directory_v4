@@ -878,6 +878,37 @@ export class FraudDetectionService {
   }
 }
 
+// Simple rate limit function for backward compatibility
+export async function rateLimit(
+  identifier: string,
+  operation: string,
+  maxAttempts: number = 5,
+  windowMinutes: number = 60
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const context: SecurityContext = {
+    userId: undefined,
+    ipAddress: identifier,
+    deviceId: undefined,
+    userAgent: 'unknown',
+    method: 'POST',
+    isNewDevice: false,
+    deviceTrustScore: 0.5,
+    riskScore: 0.3
+  };
+
+  const result = await RateLimiterService.checkRateLimit(
+    operation as any, // Type assertion for compatibility
+    context
+  );
+
+  return {
+    allowed: result.allowed,
+    retryAfter: result.cooldownUntil 
+      ? Math.ceil((result.cooldownUntil.getTime() - Date.now()) / 1000)
+      : undefined
+  };
+}
+
 // Export types and configuration
 export type { RateLimitResult, SecurityContext };
 export { RATE_LIMIT_CONFIG };

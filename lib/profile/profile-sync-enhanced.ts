@@ -863,7 +863,7 @@ export class EnhancedProfileSyncManager extends ProfileSyncManager {
     try {
       await this.supabase
         .from('profile_sync_history')
-        .insert({
+        .insert([{
           user_id: userId,
           provider: provider,
           sync_type: 'enhanced',
@@ -885,7 +885,7 @@ export class EnhancedProfileSyncManager extends ProfileSyncManager {
           success: syncResult.success,
           error_message: syncResult.error,
           processing_time_ms: 0 // TODO: Add timing
-        })
+        }])
     } catch (error) {
       console.error('Failed to record enhanced sync history:', error)
     }

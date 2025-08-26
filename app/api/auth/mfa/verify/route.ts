@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         verificationResult = await SMSVerificationService.verifyCode(
           challenge_id,
           code,
-          { deviceId, ipAddress, userAgent }
+          { deviceId: deviceId || undefined, ipAddress, userAgent }
         );
         break;
 
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         verificationResult = await BackupCodeService.verifyBackupCode(
           userId,
           code,
-          { deviceId, ipAddress, userAgent, challengeId: challenge_id }
+          { deviceId: deviceId || undefined, ipAddress, userAgent, challengeId: challenge_id }
         );
         break;
 
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       method,
       success: verificationResult.valid,
       challengeId: challenge_id,
-      deviceId,
+      deviceId: deviceId || undefined,
       ipAddress,
       userAgent,
       responseTimeMs: responseTime,
@@ -173,12 +173,12 @@ export async function POST(request: NextRequest) {
 
     // Update session with MFA verification
     if (!setup_mode) {
-      await updateSessionMFAStatus(userId, deviceId, method);
+      await updateSessionMFAStatus(userId, deviceId || undefined, method);
     }
 
     // Complete TOTP setup if in setup mode
     if (setup_mode && method === 'totp') {
-      await supabase
+      await (supabase as any)
         .from('auth_mfa_config')
         .update({
           totp_verified: true,
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
 
     // Handle device trust preferences
     if (remember_device && deviceTrustResult?.success) {
-      await handleDeviceRemembering(userId, deviceId, deviceTrustResult.trustScore);
+      await handleDeviceRemembering(userId, deviceId || undefined, deviceTrustResult.trustScore);
     }
 
     const response = {
@@ -281,7 +281,7 @@ export async function GET(request: NextRequest) {
           phone,
           {
             purpose: 'mfa_login',
-            deviceId,
+            deviceId: deviceId || undefined,
             ipAddress,
             userAgent
           }
@@ -292,7 +292,7 @@ export async function GET(request: NextRequest) {
         challengeResult = await createEmailChallenge(
           userId,
           email || session.user.email!,
-          { deviceId, ipAddress, userAgent }
+          { deviceId: deviceId || undefined, ipAddress, userAgent }
         );
         break;
 
@@ -381,21 +381,21 @@ async function verifyEmailCode(
     return { valid: false, error: 'Invalid or expired challenge' };
   }
 
-  if (new Date(challenge.expires_at) < new Date()) {
+  if (new Date((challenge as any).expires_at) < new Date()) {
     return { valid: false, error: 'Challenge expired' };
   }
 
-  if (challenge.attempts >= challenge.max_attempts) {
+  if ((challenge as any).attempts >= (challenge as any).max_attempts) {
     return { valid: false, error: 'Too many attempts' };
   }
 
-  const isValid = challenge.challenge_code === code;
+  const isValid = (challenge as any).challenge_code === code;
 
   // Update attempt count
-  await supabase
+  await (supabase as any)
     .from('auth_mfa_challenges')
     .update({
-      attempts: challenge.attempts + 1,
+      attempts: (challenge as any).attempts + 1,
       verified: isValid,
       verified_at: isValid ? new Date().toISOString() : undefined
     })
@@ -418,9 +418,9 @@ async function createEmailChallenge(
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Create challenge
-    const { data: challenge, error } = await supabase
+    const { data: challenge, error } = await (supabase as any)
       .from('auth_mfa_challenges')
-      .insert({
+      .insert([{
         user_id: userId,
         challenge_type: 'email',
         challenge_code: code,
@@ -428,7 +428,7 @@ async function createEmailChallenge(
         ip_address: context.ipAddress,
         user_agent: context.userAgent,
         device_id: context.deviceId
-      })
+      }])
       .select('id')
       .single();
 
@@ -459,7 +459,7 @@ async function updateSessionMFAStatus(
   method?: string
 ): Promise<void> {
   // Update current session with MFA verification
-  await supabase
+  await (supabase as any)
     .from('user_sessions')
     .update({
       mfa_verified: true,
@@ -480,7 +480,7 @@ async function handleDeviceRemembering(
   }
 
   // Add or update trusted device
-  await supabase
+  await (supabase as any)
     .from('trusted_devices')
     .upsert({
       user_id: userId,
@@ -493,15 +493,15 @@ async function handleDeviceRemembering(
 
 async function notifyLastBackupCodeUsed(userId: string): Promise<void> {
   // Create high-priority notification
-  await supabase
+  await (supabase as any)
     .from('security_events')
-    .insert({
+    .insert([{
       event_type: 'last_backup_code_used',
       severity: 'high',
       user_id: userId,
       description: 'User has used their last backup code and needs to generate new ones',
       action_taken: 'user_notification_required'
-    });
+    }]);
 }
 
 async function getNetworkContext(ipAddress: string): Promise<any> {

@@ -96,5 +96,31 @@ export async function withRateLimit(
   return rateLimiter.limit(req);
 }
 
+// Simple rate limit function for backward compatibility
+export async function rateLimit(
+  identifier: string,
+  operation: string,
+  maxAttempts: number = 100,
+  windowMs: number = 15 * 60 * 1000 // 15 minutes
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const rateLimiter = new RateLimiter({
+    windowMs,
+    maxRequests: maxAttempts,
+    identifier: () => identifier,
+  });
+
+  // Create a mock NextRequest for the rate limiter
+  const mockRequest = {
+    ip: identifier,
+  } as any;
+
+  const result = await rateLimiter.limit(mockRequest);
+  
+  return {
+    allowed: result.success,
+    retryAfter: result.success ? undefined : Math.ceil((result.resetTime - Date.now()) / 1000)
+  };
+}
+
 export { RateLimiter };
 export type { RateLimitOptions, RateLimitResult };

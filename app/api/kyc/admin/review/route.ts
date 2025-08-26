@@ -44,10 +44,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
   try {
     // Rate limiting - 20 reviews per hour per IP (admin activity)
     const rateLimitResult = await rateLimit('kyc-admin-review', clientIP, 20, 3600);
-    if (!rateLimitResult.success) {
-      await logSecurityEvent('kyc_admin_review_rate_limited', {
-        clientIP,
-        remainingAttempts: rateLimitResult.remaining
+    if (!rateLimitResult.allowed) {
+      await logSecurityEvent('rate_limit_exceeded', 'high', request, {
+        retryAfter: rateLimitResult.retryAfter
       });
       
       return NextResponse.json({
@@ -63,8 +62,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
       const rawBody = await request.json();
       body = adminReviewSchema.parse(rawBody);
     } catch (error) {
-      await logSecurityEvent('kyc_admin_review_invalid_request', {
-        clientIP,
+      await logSecurityEvent('kyc_admin_review_invalid_request', 'medium', request, {
         error: error instanceof Error ? error.message : 'Unknown validation error'
       });
       
@@ -76,9 +74,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
     }
 
     // CSRF validation
-    if (!await validateCSRF(body.csrfToken, request)) {
-      await logSecurityEvent('kyc_admin_review_csrf_validation_failed', {
-        clientIP,
+    if (!await validateCSRF(request)) {
+      await logSecurityEvent('kyc_admin_review_csrf_validation_failed', 'high', request, {
         verificationId: body.verificationId
       });
       
@@ -95,8 +92,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      await logSecurityEvent('kyc_admin_review_unauthenticated', {
-        clientIP,
+      await logSecurityEvent('kyc_admin_review_unauthenticated', 'high', request, {
+        
         verificationId: body.verificationId
       });
       
@@ -121,8 +118,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
     });
 
     if (!hasReviewPermission && !hasAdminPermission) {
-      await logSecurityEvent('kyc_admin_review_unauthorized', {
-        clientIP,
+      await logSecurityEvent('kyc_admin_review_unauthorized', 'high', request, {
+        
         userId: user.id,
         verificationId: body.verificationId
       });
@@ -145,8 +142,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
       .single();
 
     if (verificationError || !verification) {
-      await logSecurityEvent('kyc_admin_review_verification_not_found', {
-        clientIP,
+      await logSecurityEvent('kyc_admin_review_verification_not_found', 'medium', request, {
+        
         userId: user.id,
         verificationId: body.verificationId
       });
@@ -201,8 +198,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
     });
 
     if (reviewError) {
-      await logSecurityEvent('kyc_admin_review_processing_error', {
-        clientIP,
+      await logSecurityEvent('kyc_admin_review_processing_error', 'high', request, {
+        
         userId: user.id,
         verificationId: body.verificationId,
         error: reviewError.message
@@ -253,8 +250,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
 
       if (!escalationError) {
         // Log escalation
-        await logSecurityEvent('kyc_verification_escalated', {
-          clientIP,
+        await logSecurityEvent('kyc_verification_escalated', 'medium', request, {
+          
           userId: user.id,
           verificationId: body.verificationId,
           reason: body.decisionReason
@@ -265,25 +262,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
     // Handle compliance flagging
     if (body.flagForCompliance) {
       const { error: complianceError } = await supabase
-        .from('kyc_compliance_reports')
-        .insert({
-          report_type: 'suspicious_activity',
-          report_period_start: new Date().toISOString().split('T')[0],
-          report_period_end: new Date().toISOString().split('T')[0],
-          detailed_data: {
+        .from('auth_audit_logs')
+        .insert([{
+          event_type: 'compliance_flag',
+          event_category: 'kyc_review',
+          user_id: user.id,
+          target_user_id: verification.user_id,
+          event_data: {
             verification_id: body.verificationId,
-            flagged_by: user.id,
             flag_reason: body.complianceNotes || body.decisionReason,
             risk_level: verification.risk_level,
             timestamp: new Date().toISOString()
           },
-          generated_by: user.id,
-          status: 'generated'
-        });
+          success: true
+        }]);
 
       if (!complianceError) {
-        await logSecurityEvent('kyc_compliance_flagged', {
-          clientIP,
+        await logSecurityEvent('kyc_compliance_flagged', 'high', request, {
+          
           userId: user.id,
           verificationId: body.verificationId,
           reason: body.complianceNotes || body.decisionReason
@@ -325,8 +321,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
     }
 
     // Log successful review completion
-    await logSecurityEvent('kyc_admin_review_completed', {
-      clientIP,
+    await logSecurityEvent('kyc_admin_review_completed', 'low', request, {
+      
       userId: user.id,
       verificationId: body.verificationId,
       decision: body.decision,
@@ -347,8 +343,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AdminRevi
     }, { status: 200 });
 
   } catch (error) {
-    await logSecurityEvent('kyc_admin_review_unexpected_error', {
-      clientIP,
+    await logSecurityEvent('kyc_admin_review_unexpected_error', 'critical', request, {
+      
       error: error instanceof Error ? error.message : 'Unknown error',
       processingTime: Date.now() - startTime
     });
@@ -368,7 +364,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Rate limiting for review queue access
     const rateLimitResult = await rateLimit('kyc-review-queue', clientIP, 30, 3600);
-    if (!rateLimitResult.success) {
+    if (!rateLimitResult.allowed) {
       return NextResponse.json({
         success: false,
         error: 'Too many queue access requests. Please try again later.',

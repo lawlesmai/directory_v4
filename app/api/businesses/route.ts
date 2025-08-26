@@ -23,11 +23,10 @@ export async function GET(request: NextRequest) {
     // Validate and sanitize inputs
     const params: BusinessSearchParams = {
       query: rawQuery ? sanitizeInput(rawQuery) : undefined,
-      category: rawCategory ? sanitizeInput(rawCategory) : undefined,
-      categoryId: rawCategoryId ? sanitizeInput(rawCategoryId) : undefined,
+      category: rawCategory ? sanitizeInput(rawCategory) : rawCategoryId ? sanitizeInput(rawCategoryId) : undefined,
       limit: rawLimit ? Math.min(Math.max(parseInt(rawLimit), 1), 100) : undefined, // Limit between 1-100
       offset: rawOffset ? Math.max(parseInt(rawOffset), 0) : undefined, // Non-negative offset
-      sortBy: rawSortBy ? sanitizeInput(rawSortBy) : undefined,
+      sortBy: rawSortBy ? sanitizeInput(rawSortBy) as any : undefined,
       sortOrder: rawSortOrder && ['asc', 'desc'].includes(rawSortOrder) ? rawSortOrder as any : undefined,
     }
 
