@@ -162,7 +162,7 @@ export async function middleware(request: NextRequest) {
         
         // Log security event to database
         try {
-          await supabase.from('security_events').insert({
+          await supabase.from('security_events').insert([{
             event_type: 'session_hijack_attempt',
             severity: 'critical',
             user_id: user.id,
@@ -170,7 +170,7 @@ export async function middleware(request: NextRequest) {
             details: securityEvent.details,
             ip_address: ip,
             user_agent: request.headers.get('user-agent')
-          })
+          }])
         } catch (error) {
           console.error('Failed to log security event:', error)
         }
@@ -271,7 +271,7 @@ export async function middleware(request: NextRequest) {
 
     if (!hasRequiredRole) {
       // Log unauthorized access attempt
-      await supabase.from('security_events').insert({
+      await supabase.from('security_events').insert([{
         event_type: 'unauthorized_access_attempt',
         severity: 'medium',
         user_id: user.id,
@@ -284,7 +284,7 @@ export async function middleware(request: NextRequest) {
         },
         ip_address: ip,
         user_agent: request.headers.get('user-agent')
-      })
+      }])
       
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
@@ -376,7 +376,7 @@ export async function middleware(request: NextRequest) {
     ]
 
     if (sensitiveOperations.some(op => pathname.startsWith(op))) {
-      await supabase.from('security_events').insert({
+      await supabase.from('security_events').insert([{
         event_type: 'sensitive_operation_attempt',
         severity: 'medium',
         user_id: user.id,
@@ -388,7 +388,7 @@ export async function middleware(request: NextRequest) {
         },
         ip_address: request.headers.get('x-forwarded-for') || 'unknown',
         user_agent: request.headers.get('user-agent')
-      })
+      }])
     }
   }
 

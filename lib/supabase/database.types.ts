@@ -533,6 +533,263 @@ export interface Database {
           created_at?: string
         }
       }
+      profiles: {
+        Row: {
+          id: string
+          display_name: string | null
+          username: string | null
+          avatar_url: string | null
+          bio: string | null
+          first_name: string | null
+          last_name: string | null
+          date_of_birth: string | null
+          phone_number: string | null
+          phone_verified: boolean
+          city: string | null
+          state: string | null
+          country: string | null
+          timezone: string
+          website: string | null
+          social_links: Json
+          preferences: Json
+          marketing_consent: boolean
+          data_processing_consent: boolean
+          consent_timestamp: string | null
+          email: string | null
+          email_verified: boolean
+          account_status: string
+          suspension_reason: string | null
+          suspension_date: string | null
+          last_login_at: string | null
+          last_login_ip: string | null
+          failed_login_attempts: number
+          locked_until: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id: string
+          display_name?: string | null
+          username?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          date_of_birth?: string | null
+          phone_number?: string | null
+          phone_verified?: boolean
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          timezone?: string
+          website?: string | null
+          social_links?: Json
+          preferences?: Json
+          marketing_consent?: boolean
+          data_processing_consent?: boolean
+          consent_timestamp?: string | null
+          email?: string | null
+          email_verified?: boolean
+          account_status?: string
+          suspension_reason?: string | null
+          suspension_date?: string | null
+          last_login_at?: string | null
+          last_login_ip?: string | null
+          failed_login_attempts?: number
+          locked_until?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          display_name?: string | null
+          username?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          date_of_birth?: string | null
+          phone_number?: string | null
+          phone_verified?: boolean
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          timezone?: string
+          website?: string | null
+          social_links?: Json
+          preferences?: Json
+          marketing_consent?: boolean
+          data_processing_consent?: boolean
+          consent_timestamp?: string | null
+          email?: string | null
+          email_verified?: boolean
+          account_status?: string
+          suspension_reason?: string | null
+          suspension_date?: string | null
+          last_login_at?: string | null
+          last_login_ip?: string | null
+          failed_login_attempts?: number
+          locked_until?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+      }
+      roles: {
+        Row: {
+          id: string
+          name: string
+          display_name: string
+          description: string | null
+          level: number
+          parent_role_id: string | null
+          permissions: Json
+          is_system_role: boolean
+          active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          display_name: string
+          description?: string | null
+          level?: number
+          parent_role_id?: string | null
+          permissions?: Json
+          is_system_role?: boolean
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          display_name?: string
+          description?: string | null
+          level?: number
+          parent_role_id?: string | null
+          permissions?: Json
+          is_system_role?: boolean
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      auth_audit_logs: {
+        Row: {
+          id: string
+          event_type: string
+          event_category: string
+          user_id: string | null
+          target_user_id: string | null
+          session_id: string | null
+          event_data: Json
+          success: boolean
+          failure_reason: string | null
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_type: string
+          event_category: string
+          user_id?: string | null
+          target_user_id?: string | null
+          session_id?: string | null
+          event_data?: Json
+          success: boolean
+          failure_reason?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_type?: string
+          event_category?: string
+          user_id?: string | null
+          target_user_id?: string | null
+          session_id?: string | null
+          event_data?: Json
+          success?: boolean
+          failure_reason?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+      }
+      gdpr_data_deletions: {
+        Row: {
+          id: string
+          user_id: string | null
+          deletion_type: string
+          deletion_scope: string[] | null
+          keep_anonymized: boolean
+          legal_basis: string
+          justification: string | null
+          status: string
+          processing_started_at: string | null
+          processing_completed_at: string | null
+          items_deleted: number
+          items_anonymized: number
+          deletion_log: Json | null
+          requested_at: string
+          requested_by: string | null
+          processed_by: string | null
+          review_required: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          deletion_type?: string
+          deletion_scope?: string[] | null
+          keep_anonymized?: boolean
+          legal_basis: string
+          justification?: string | null
+          status?: string
+          processing_started_at?: string | null
+          processing_completed_at?: string | null
+          items_deleted?: number
+          items_anonymized?: number
+          deletion_log?: Json | null
+          requested_at?: string
+          requested_by?: string | null
+          processed_by?: string | null
+          review_required?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          deletion_type?: string
+          deletion_scope?: string[] | null
+          keep_anonymized?: boolean
+          legal_basis?: string
+          justification?: string | null
+          status?: string
+          processing_started_at?: string | null
+          processing_completed_at?: string | null
+          items_deleted?: number
+          items_anonymized?: number
+          deletion_log?: Json | null
+          requested_at?: string
+          requested_by?: string | null
+          processed_by?: string | null
+          review_required?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       business_stats: {
@@ -677,6 +934,22 @@ export type CategoryUpdate = Database['public']['Tables']['categories']['Update'
 export type BusinessReview = Database['public']['Tables']['business_reviews']['Row']
 export type BusinessReviewInsert = Database['public']['Tables']['business_reviews']['Insert']
 export type BusinessReviewUpdate = Database['public']['Tables']['business_reviews']['Update']
+
+export type Profile = Database['public']['Tables']['profiles']['Row']
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
+
+export type Role = Database['public']['Tables']['roles']['Row']
+export type RoleInsert = Database['public']['Tables']['roles']['Insert']
+export type RoleUpdate = Database['public']['Tables']['roles']['Update']
+
+export type AuthAuditLog = Database['public']['Tables']['auth_audit_logs']['Row']
+export type AuthAuditLogInsert = Database['public']['Tables']['auth_audit_logs']['Insert']
+export type AuthAuditLogUpdate = Database['public']['Tables']['auth_audit_logs']['Update']
+
+export type GdprDataDeletion = Database['public']['Tables']['gdpr_data_deletions']['Row']
+export type GdprDataDeletionInsert = Database['public']['Tables']['gdpr_data_deletions']['Insert']
+export type GdprDataDeletionUpdate = Database['public']['Tables']['gdpr_data_deletions']['Update']
 
 export type BusinessStats = Database['public']['Views']['business_stats']['Row']
 export type CategoryBusinessCounts = Database['public']['Views']['category_business_counts']['Row']

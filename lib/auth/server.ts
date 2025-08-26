@@ -215,7 +215,7 @@ export async function logAuthEvent(
   try {
     const supabase = createServiceRoleClient()
     
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: eventType,
       event_category: getEventCategory(eventType),
       user_id: userId,

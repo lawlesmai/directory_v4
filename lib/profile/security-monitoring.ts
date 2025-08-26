@@ -120,7 +120,7 @@ export class SecurityMonitor {
       // Store in database
       const { data: storedEvent, error } = await this.supabase
         .from('security_events')
-        .insert(enhancedEvent)
+        .insert([enhancedEvent])
         .select()
         .single()
 
@@ -163,7 +163,7 @@ export class SecurityMonitor {
 
       const { error } = await this.supabase
         .from('auth_audit_logs')
-        .insert(enhancedEntry)
+        .insert([enhancedEntry])
 
       if (error) {
         console.error('Failed to log audit event:', error)

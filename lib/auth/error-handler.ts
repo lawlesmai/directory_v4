@@ -465,7 +465,7 @@ export class OAuthErrorHandler {
     additionalContext?: any
   ): Promise<void> {
     try {
-      await this.supabase.from('auth_audit_logs').insert({
+      await (this.supabase as any).from('auth_audit_logs').insert({
         event_type: 'oauth_error',
         event_category: 'error',
         user_id: userId,

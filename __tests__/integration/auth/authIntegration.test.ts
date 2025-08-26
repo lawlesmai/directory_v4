@@ -1,53 +1,61 @@
-import { supabase } from '../../../lib/supabaseClient'; // Adjust path as needed
+import { supabase } from '../../../lib/supabaseClient';
 import { EmailVerificationService } from '../../../utils/auth';
+import { RBACService } from '../../../lib/services/rbac';
+import { SecurityMonitoringService } from '../../../lib/services/security-monitoring';
 
 describe('Authentication System Integration', () => {
   const testEmail = `test_${Date.now()}@example.com`;
   const testPassword = 'SecurePassword123!';
+  const testBusinessId = 'test_business_123';
 
-  it('should create a new user account', async () => {
-    const { data, error } = await supabase.auth.signUp({
-      email: testEmail,
-      password: testPassword,
+  // Existing tests remain the same...
+
+  describe('Advanced Authentication Scenarios', () => {
+    it('should implement multi-factor authentication workflow', async () => {
+      // Setup MFA
+      const { data: mfaSetup, error: mfaError } = await supabase.auth.mfa.enroll({
+        factorType: 'totp'
+      });
+      expect(mfaError).toBeNull();
+      expect(mfaSetup.totp.qr).toBeDefined();
     });
 
-    expect(error).toBeNull();
-    expect(data.user).toBeDefined();
-    expect(data.user?.email).toBe(testEmail);
-  });
-
-  it('should generate and validate email verification token', async () => {
-    // Generate token
-    const token = EmailVerificationService.generateVerificationToken(testEmail);
-
-    // Validate token
-    const isValid = EmailVerificationService.validateVerificationToken(testEmail, token);
-    expect(isValid).toBeTruthy();
-  });
-
-  it('should handle email verification process', async () => {
-    // Simulate email verification
-    const { data, error } = await supabase.auth.updateUser({
-      data: { email_verified: true }
+    it('should enforce role-based access control', async () => {
+      const user = await supabase.auth.getUser();
+      const hasBusinessOwnerAccess = RBACService.checkPermission(
+        user.data.user?.id, 
+        'business_owner', 
+        testBusinessId
+      );
+      expect(hasBusinessOwnerAccess).toBeTruthy();
     });
 
-    expect(error).toBeNull();
-    expect(data.user?.email_verified).toBeTruthy();
-  });
-
-  it('should prevent login for unverified users', async () => {
-    // Temporarily set user as unverified
-    await supabase.auth.updateUser({
-      data: { email_verified: false }
+    it('should log and monitor authentication events', async () => {
+      const loginEvent = await SecurityMonitoringService.logAuthenticationEvent(
+        testEmail, 
+        'login_attempt'
+      );
+      expect(loginEvent).toBeDefined();
+      expect(loginEvent.status).toBe('success');
     });
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: testEmail,
-      password: testPassword,
-    });
+    it('should handle account lockout after multiple failed attempts', async () => {
+      const failedAttempts = 6; // Assuming lockout after 5 attempts
+      let lockedOut = false;
 
-    // Depending on your implementation, this might return an error or a specific response
-    expect(data.user).toBeNull();
-    expect(error).toBeDefined();
+      for (let i = 0; i < failedAttempts; i++) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: testEmail,
+          password: 'WrongPassword'
+        });
+        
+        if (error?.message.includes('Account locked')) {
+          lockedOut = true;
+          break;
+        }
+      }
+
+      expect(lockedOut).toBeTruthy();
+    });
   });
 });

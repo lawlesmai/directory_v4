@@ -1,0 +1,47 @@
+import { performance } from 'perf_hooks';
+import { supabase } from '../../lib/supabaseClient';
+
+describe('Authentication Performance Tests', () => {
+  const testEmail = `perf_${Date.now()}@example.com`;
+  const testPassword = 'PerformanceTest123!';
+
+  const PERFORMANCE_THRESHOLDS = {
+    signUp: 200,      // milliseconds
+    signIn: 150,      // milliseconds
+    tokenValidation: 50,  // milliseconds
+    permissionCheck: 10   // milliseconds
+  };
+
+  it('should measure sign-up performance', async () => {
+    const start = performance.now();
+    const { error } = await supabase.auth.signUp({
+      email: testEmail,
+      password: testPassword
+    });
+    const duration = performance.now() - start;
+
+    expect(error).toBeNull();
+    expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.signUp);
+  });
+
+  it('should measure sign-in performance', async () => {
+    const start = performance.now();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: testEmail,
+      password: testPassword
+    });
+    const duration = performance.now() - start;
+
+    expect(error).toBeNull();
+    expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.signIn);
+  });
+
+  it('should validate token quickly', async () => {
+    const start = performance.now();
+    const { data } = await supabase.auth.getUser();
+    const duration = performance.now() - start;
+
+    expect(data.user).toBeDefined();
+    expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.tokenValidation);
+  });
+});

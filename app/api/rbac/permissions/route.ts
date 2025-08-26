@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
     const deniedCount = detailedResults.length - allowedCount
 
     // Log permission evaluation for audit purposes
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'bulk_permission_evaluation',
       event_category: 'permission',
       user_id: user.id,
@@ -361,7 +361,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Log cache refresh
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'permission_cache_refreshed',
       event_category: 'permission',
       user_id: user.id,

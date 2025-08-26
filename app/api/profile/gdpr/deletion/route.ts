@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for existing pending deletion
-    const { data: existingDeletion } = await supabase
+    const { data: existingDeletion } = await (supabase as any)
       .from('gdpr_data_deletions')
       .select('id, status, deletion_type, requested_at')
       .eq('user_id', userId)
@@ -93,14 +93,14 @@ export async function POST(request: NextRequest) {
 
     // For account deletion, check for active business ownership
     if (deletionType === 'account') {
-      const { data: businessOwnership } = await supabase
+      const { data: businessOwnership } = await (supabase as any)
         .from('business_owners')
         .select('business_id, businesses(name, status)')
         .eq('user_id', userId)
         .eq('is_active', true)
 
       if (businessOwnership && businessOwnership.length > 0) {
-        const activeBusinesses = businessOwnership.filter(bo => 
+        const activeBusinesses = businessOwnership.filter((bo: any) => 
           bo.businesses?.status === 'active'
         )
 
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
             {
               error: 'Cannot delete account with active business ownership',
               code: 'ACTIVE_BUSINESS_OWNERSHIP',
-              activeBusinesses: activeBusinesses.map(ab => ({
+              activeBusinesses: activeBusinesses.map((ab: any) => ({
                 businessId: ab.business_id,
                 businessName: ab.businesses?.name
               })),
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log deletion request
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'gdpr_deletion_requested',
       event_category: 'gdpr',
       user_id: userId,
@@ -257,7 +257,7 @@ export async function GET(request: NextRequest) {
 
     if (deletionId) {
       // Get specific deletion request
-      const { data: deletionRecord, error: deletionError } = await supabase
+      const { data: deletionRecord, error: deletionError } = await (supabase as any)
         .from('gdpr_data_deletions')
         .select('*')
         .eq('id', deletionId)
@@ -295,7 +295,7 @@ export async function GET(request: NextRequest) {
 
     } else {
       // Get deletion history
-      const { data: deletions, error: deletionsError } = await supabase
+      const { data: deletions, error: deletionsError } = await (supabase as any)
         .from('gdpr_data_deletions')
         .select('*')
         .eq('user_id', userId)
@@ -307,7 +307,7 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json({
-        deletions: (deletions || []).map(del => ({
+        deletions: (deletions || []).map((del: any) => ({
           id: del.id,
           deletionType: del.deletion_type,
           status: del.status,
@@ -371,7 +371,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Get deletion record
-    const { data: deletionRecord, error: deletionError } = await supabase
+    const { data: deletionRecord, error: deletionError } = await (supabase as any)
       .from('gdpr_data_deletions')
       .select('*')
       .eq('id', deletionId)
@@ -409,7 +409,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Mark deletion as reversed
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('gdpr_data_deletions')
       .update({
         reversed_at: new Date().toISOString(),
@@ -426,7 +426,7 @@ export async function PATCH(request: NextRequest) {
     // This is a complex process that may involve restoring from backups
 
     // Log deletion reversal
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'gdpr_deletion_reversed',
       event_category: 'gdpr',
       user_id: userId,

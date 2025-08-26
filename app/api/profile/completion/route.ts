@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
     const result = await profileCompletionManager.updateCompletionAndCheckAchievements(userId)
 
     // Log manual completion update
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'manual_completion_update',
       event_category: 'profile',
       user_id: userId,

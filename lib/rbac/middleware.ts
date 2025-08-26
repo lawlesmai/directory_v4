@@ -306,7 +306,7 @@ export function createRBACMiddleware(config: RBACConfig) {
     if (!permissionResult.allowed) {
       // Log unauthorized access attempt
       if (!config.skipAuditLog) {
-        await supabase.from('auth_audit_logs').insert({
+        await (supabase as any).from('auth_audit_logs').insert({
           event_type: 'unauthorized_api_access',
           event_category: 'permission',
           user_id: user.id,
@@ -337,7 +337,7 @@ export function createRBACMiddleware(config: RBACConfig) {
 
     // Log successful access if configured
     if (!config.skipAuditLog) {
-      await supabase.from('auth_audit_logs').insert({
+      await (supabase as any).from('auth_audit_logs').insert({
         event_type: 'authorized_api_access',
         event_category: 'permission',
         user_id: user.id,
@@ -388,7 +388,7 @@ export function withRBAC<T extends any[], R>(
     if (!permissionResult.allowed) {
       // Log unauthorized attempt
       if (!config.skipAuditLog) {
-        await supabase.from('auth_audit_logs').insert({
+        await (supabase as any).from('auth_audit_logs').insert({
           event_type: 'unauthorized_server_action',
           event_category: 'permission',
           user_id: user.id,

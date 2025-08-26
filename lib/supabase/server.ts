@@ -78,3 +78,6 @@ export const createServiceRoleClient = () => {
     }
   )
 }
+
+// Export a singleton instance for direct use
+export const supabase = createClient()

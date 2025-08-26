@@ -81,7 +81,11 @@ export {
 export { 
   FieldError,
   AuthError,
-  ErrorAlert 
+  ErrorMessage,
+  ErrorDisplay,
+  FieldSuccess,
+  NetworkError,
+  SuccessMessage
 } from './ErrorMessages';
 export { 
   default as PasswordStrength,

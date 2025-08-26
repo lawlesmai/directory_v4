@@ -596,7 +596,7 @@ export class ProfileSyncManager {
     conflictsCount?: number
   }): Promise<void> {
     try {
-      await this.supabase.from('auth_audit_logs').insert({
+      await (this.supabase as any).from('auth_audit_logs').insert({
         event_type: 'profile_sync',
         event_category: 'profile',
         user_id: userId,

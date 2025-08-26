@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
     
     // Update the business interaction counters
     const updateField = `${action}_count`
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('businesses')
       .update({ 
-        [updateField]: supabase.rpc('increment_counter', { amount: 1 }),
+        [updateField]: (supabase as any).rpc('increment_counter', { amount: 1 }),
         last_activity_at: new Date().toISOString()
       })
       .eq('id', businessId)

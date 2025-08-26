@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import type { ProfileInsert } from '@/lib/supabase/database.types'
 import { oauthConfig, isValidOAuthProvider, OAuthProvider } from '@/lib/auth/oauth-config'
 import { headers } from 'next/headers'
 import { AccountLinkingManager } from '@/lib/auth/account-linking'
@@ -318,7 +319,7 @@ async function processOAuthAuthentication({
     const normalizedUserInfo = normalizeProviderUserInfo(provider, providerUserInfo)
     
     // Check if OAuth connection already exists
-    const { data: existingConnection } = await supabase
+    const { data: existingConnection } = await (supabase as any)
       .from('user_oauth_connections')
       .select(`
         *,
@@ -334,9 +335,9 @@ async function processOAuthAuthentication({
 
     if (existingConnection) {
       // Existing OAuth connection - update tokens and sign in
-      userId = existingConnection.user_id
+      userId = (existingConnection as any).user_id
       
-      await supabase
+      await (supabase as any)
         .from('user_oauth_connections')
         .update({
           access_token_encrypted: await encryptToken(tokenData.access_token),
@@ -348,7 +349,7 @@ async function processOAuthAuthentication({
           provider_data: normalizedUserInfo,
           last_used_at: new Date().toISOString()
         })
-        .eq('id', existingConnection.id)
+        .eq('id', (existingConnection as any).id)
 
       // Sync profile data
       const profileSync = new ProfileSyncManager()
@@ -356,16 +357,16 @@ async function processOAuthAuthentication({
       
     } else {
       // New OAuth connection - check if user exists by email
-      let existingUser = null
+      let existingUser: { id: string } | null = null
       
       if (normalizedUserInfo.email) {
-        const { data } = await supabase
+        const { data } = await (supabase as any)
           .from('profiles')
           .select('id')
           .eq('email', normalizedUserInfo.email)
           .maybeSingle()
         
-        existingUser = data
+        existingUser = data as { id: string } | null
       }
 
       if (existingUser) {
@@ -416,40 +417,42 @@ async function processOAuthAuthentication({
         isNewUser = true
 
         // Create profile
-        await supabase
+        const profileData: ProfileInsert = {
+          id: userId,
+          display_name: normalizedUserInfo.name,
+          avatar_url: normalizedUserInfo.picture,
+          email: normalizedUserInfo.email,
+          email_verified: true,
+          account_status: 'active',
+          created_at: new Date().toISOString()
+        }
+        
+        await (supabase as any)
           .from('profiles')
-          .insert({
-            id: userId,
-            display_name: normalizedUserInfo.name,
-            avatar_url: normalizedUserInfo.picture,
-            email: normalizedUserInfo.email,
-            email_verified: true,
-            account_status: 'active',
-            created_at: new Date().toISOString()
-          })
+          .insert([profileData])
 
         // Assign default user role
-        const { data: userRole } = await supabase
+        const { data: userRole } = await (supabase as any)
           .from('roles')
           .select('id')
           .eq('name', 'user')
           .single()
 
         if (userRole) {
-          await supabase
+          await (supabase as any)
             .from('user_roles')
-            .insert({
+            .insert([{
               user_id: userId,
               role_id: userRole.id,
               is_active: true
-            })
+            }])
         }
 
         // Create OAuth connection
         const providerId = await getProviderConfigId(provider)
-        await supabase
+        await (supabase as any)
           .from('user_oauth_connections')
-          .insert({
+          .insert([{
             user_id: userId,
             provider_id: providerId,
             provider_user_id: normalizedUserInfo.id,
@@ -465,7 +468,7 @@ async function processOAuthAuthentication({
             is_primary: true,
             is_verified: true,
             connected_at: new Date().toISOString()
-          })
+          }])
       }
     }
 
@@ -485,7 +488,7 @@ async function processOAuthAuthentication({
     return {
       success: true,
       userId,
-      sessionToken: session?.properties?.access_token,
+      sessionToken: (session as any)?.properties?.access_token,
       isNewUser,
       linkedAccount
     }
@@ -552,7 +555,7 @@ function normalizeProviderUserInfo(provider: OAuthProvider, userInfo: any) {
 
 async function getProviderConfigId(provider: OAuthProvider): Promise<string> {
   const supabase = createClient()
-  const { data } = await supabase
+  const { data } = await (supabase as any)
     .from('oauth_providers')
     .select('id')
     .eq('provider_name', provider)
@@ -603,7 +606,7 @@ async function logAuthEvent({
     const realIp = headersList.get('x-real-ip')
     const ipAddress = forwardedFor?.split(',')[0] || realIp || 'unknown'
     
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: eventType,
       event_category: 'oauth',
       success,

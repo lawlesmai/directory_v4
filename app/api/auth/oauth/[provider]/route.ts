@@ -188,7 +188,7 @@ async function logAuthEvent({
     const realIp = headersList.get('x-real-ip')
     const ipAddress = forwardedFor?.split(',')[0] || realIp || 'unknown'
     
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: eventType,
       event_category: 'oauth',
       success,

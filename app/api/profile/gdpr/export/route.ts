@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for existing pending export
-    const { data: existingExport } = await supabase
+    const { data: existingExport } = await (supabase as any)
       .from('gdpr_data_exports')
       .select('id, status, created_at')
       .eq('user_id', userId)
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log export request
-    await supabase.from('auth_audit_logs').insert({
+    await (supabase as any).from('auth_audit_logs').insert({
       event_type: 'gdpr_export_requested',
       event_category: 'gdpr',
       user_id: userId,
@@ -240,7 +240,7 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json({
-        exports: (exports || []).map(exp => ({
+        exports: (exports || []).map((exp: any) => ({
           id: exp.id,
           requestType: exp.request_type,
           format: exp.format,
@@ -360,7 +360,7 @@ export async function DELETE(request: NextRequest) {
       }
 
       // Log export deletion
-      await supabase.from('auth_audit_logs').insert({
+      await (supabase as any).from('auth_audit_logs').insert({
         event_type: 'gdpr_export_deleted',
         event_category: 'gdpr',
         user_id: userId,

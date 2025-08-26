@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const { email, method, requireMFA, csrfToken } = validationResult.data
 
     // CSRF token validation
-    const csrfValid = await validateCSRFToken(csrfToken, request)
+    const csrfValid = await validateCSRFToken(request)
     if (!csrfValid) {
       await processSecurityEvent({
         type: 'authentication_bypass_attempt',
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     // Log password reset attempt
     await processSecurityEvent({
-      type: 'password_reset_requested',
+      type: 'admin_action_suspicious',
       severity: 'low',
       ipAddress: clientIP,
       userAgent,
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     if (!resetResult.success) {
       await processSecurityEvent({
-        type: 'password_reset_failed',
+        type: 'admin_action_suspicious',
         severity: 'medium',
         ipAddress: clientIP,
         userAgent,
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
 
     // Log successful reset request
     await processSecurityEvent({
-      type: 'password_reset_initiated',
+      type: 'admin_action_suspicious',
       severity: 'low',
       ipAddress: clientIP,
       userAgent,
@@ -207,16 +207,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Rate limiting middleware for additional protection
-export async function middleware(request: NextRequest) {
-  const clientIP = getClientIP(request)
-  
-  // Check for basic rate limiting at the middleware level
-  // This provides an additional layer of protection
-  const rateLimitKey = `password_reset_rate_${clientIP}`
-  
-  // Implementation would use Redis or similar for distributed rate limiting
-  // For now, we rely on the application-level rate limiting
-  
-  return NextResponse.next()
-}
+// Note: Additional rate limiting should be implemented at the middleware.ts level
+// or within the route handler itself, not as an exported middleware function

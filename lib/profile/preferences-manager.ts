@@ -772,7 +772,7 @@ export class PreferencesManager {
     }
   ): Promise<void> {
     try {
-      await this.supabase.from('auth_audit_logs').insert({
+      await (this.supabase as any).from('auth_audit_logs').insert({
         event_type: 'preference_change',
         event_category: 'preferences',
         user_id: userId,

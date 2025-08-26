@@ -67,6 +67,52 @@ export const registerSchema = z
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
+// Multi-step registration schemas
+export const registerStep1Schema = z
+  .object({
+    email,
+    password,
+    confirmPassword: confirmPassword()
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword']
+  });
+
+export type RegisterStep1Data = z.infer<typeof registerStep1Schema>;
+
+export const registerStep2Schema = z.object({
+  firstName: name,
+  lastName: name,
+  phone,
+  location: z.object({
+    city: z.string().optional(),
+    state: z.string().optional(),
+    country: z.string().min(1, 'Country is required')
+  }).optional(),
+  businessType: z.enum(['customer', 'business_owner', 'service_provider'], {
+    required_error: 'Please select your account type'
+  })
+});
+
+export type RegisterStep2Data = z.infer<typeof registerStep2Schema>;
+
+export const registerStep3Schema = z.object({
+  emailVerificationCode: z
+    .string()
+    .length(6, 'Verification code must be 6 digits')
+    .regex(/^\d+$/, 'Verification code must contain only numbers'),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: 'You must accept the terms and conditions'
+  }),
+  privacyAccepted: z.boolean().refine(val => val === true, {
+    message: 'You must accept the privacy policy'
+  }),
+  subscribeNewsletter: z.boolean().default(false)
+});
+
+export type RegisterStep3Data = z.infer<typeof registerStep3Schema>;
+
 // Password reset form schema
 export const passwordResetSchema = z.object({
   email

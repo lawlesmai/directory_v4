@@ -1,9 +1,14 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "node",
     "esModuleInterop": true,
-    "moduleResolution": "node"
-  },
-  "include": ["utils/**/*", "__tests__/**/*"]
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": false,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictPropertyInitialization": false,
+    "strictBindCallApply": false
+  }
 }

@@ -254,3 +254,14 @@ export function clearCSRFProtection(response: NextResponse): NextResponse {
   
   return response
 }
+
+/**
+ * Compatibility function for password reset routes
+ */
+export async function validateCSRFToken(request: NextRequest): Promise<{ isValid: boolean; error?: string }> {
+  const validation = validateCSRFTokenFromRequest(request)
+  return {
+    isValid: validation.isValid,
+    error: validation.error
+  }
+}

@@ -6,7 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/auth/server'
-import { hashPassword, verifyPassword, validatePasswordStrength, createSecurityEvent, getClientIP } from '@/lib/security/server'
+import { hashPassword, verifyPassword } from '@/lib/auth/server'
+import { validatePasswordStrength, createSecurityEvent, getClientIP } from '@/lib/security/server'
 import { sanitizeInput } from '@/lib/security'
 import { logAuthEvent } from '@/lib/auth/server'
 
