@@ -2,7 +2,7 @@
 const nextConfig = {
   experimental: {
     optimizePackageImports: ['react-icons'],
-    serverComponentsExternalPackages: ['bcryptjs']
+    serverComponentsExternalPackages: ['bcryptjs', 'argon2']
   },
   images: {
     domains: ["fonts.googleapis.com", "images.unsplash.com"],
@@ -20,9 +20,10 @@ const nextConfig = {
         os: false,
       }
       
-      // Exclude bcryptjs from client bundle
+      // Exclude server-only packages from client bundle
       config.externals = config.externals || []
       config.externals.push('bcryptjs')
+      config.externals.push('argon2')
     }
     
     return config

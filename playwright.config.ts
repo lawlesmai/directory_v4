@@ -1,19 +1,33 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './__tests__/e2e',
+  testDir: 'tests/e2e',
   timeout: 30000,
   expect: {
     timeout: 5000
   },
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
   use: {
-    actionTimeout: 0,
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
+    browserName: 'chromium',
+    headless: true,
+    viewport: { width: 1280, height: 720 },
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure'
   },
+  reporter: [
+    ['html', { outputFolder: 'playwright-report' }],
+    ['list']
+  ],
+  projects: [
+    {
+      name: 'chromium',
+      use: { browserName: 'chromium' }
+    },
+    {
+      name: 'mobile chrome',
+      use: {
+        browserName: 'chromium',
+        viewport: { width: 375, height: 812 }
+      }
+    }
+  ]
 });

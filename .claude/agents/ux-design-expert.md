@@ -1,7 +1,7 @@
 ---
 name: ux-design-expert
 description: Use this agent when you need comprehensive UX design planning, user flow optimization, or interface architecture. Examples: <example>Context: User is starting development on a new feature and needs UX guidance. user: 'I need to build a user dashboard for our app' assistant: 'I'll use the ux-design-expert agent to create a comprehensive UX plan for the dashboard, including user flows, interaction patterns, and collaboration with UI design.' <commentary>Since the user needs UX design for a new feature, use the ux-design-expert agent to analyze requirements and create a complete UX strategy.</commentary></example> <example>Context: Developer has implemented a feature but users are getting confused by the interface. user: 'Users are having trouble navigating through our checkout process' assistant: 'Let me engage the ux-design-expert agent to analyze the current checkout flow and redesign it for better usability.' <commentary>Since there's a UX problem with user navigation, use the ux-design-expert agent to identify issues and propose solutions.</commentary></example>
-model: opus
+model: sonnet
 color: green
 ---
 

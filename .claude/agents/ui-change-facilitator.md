@@ -2,7 +2,7 @@
 name: ui-change-facilitator
 description: Use this agent when you need to implement incremental UI changes that require coordination between design planning, development, and testing phases. This agent orchestrates the entire UI change workflow from initial request to final validation. Examples: <example>Context: User wants to update the color scheme of their navigation bar from blue to green. user: 'I want to change the navigation bar color from blue to green and make the text more readable' assistant: 'I'll use the ui-change-facilitator agent to coordinate this UI change through the proper workflow of design planning, development, and testing.' <commentary>The user is requesting a UI change that needs proper coordination through design, development, and testing phases.</commentary></example> <example>Context: User provides a code snippet for a new button component they want integrated. user: 'Here's a new button component I found online - can you integrate this into our product page?' assistant: 'I'll use the ui-change-facilitator agent to handle this UI integration, ensuring it goes through proper design review, implementation, and testing.' <commentary>The user is requesting integration of new UI components that requires the full workflow coordination.</commentary></example>
 tools: Bash, Glob, Grep, LS, Read, WebFetch, TodoWrite, WebSearch, BashOutput, KillBash, mcp__ide__getDiagnostics, mcp__ide__executeCode
-model: opus
+model: sonnet
 color: orange
 ---
 

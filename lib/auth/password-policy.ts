@@ -7,7 +7,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
-import { validatePasswordStrength } from '@/lib/security/server'
+import { hashPassword, verifyPassword, validatePasswordStrength } from '@/lib/security/server'
 import { WebFetch } from '@/lib/utils/web-fetch'
 
 export interface PasswordPolicy {
@@ -268,13 +268,16 @@ export class PasswordPolicyEngine {
       }
 
       const bcrypt = await import('bcryptjs')
+      const argon2 = await import('argon2')
       
       for (const entry of history) {
         if (entry.algorithm === 'bcrypt') {
           const matches = await bcrypt.compare(password, entry.password_hash)
           if (matches) return true
+        } else if (entry.algorithm === 'argon2id') {
+          const matches = await argon2.verify(entry.password_hash, password)
+          if (matches) return true
         }
-        // Add Argon2id comparison when implemented
       }
 
       return false
@@ -287,7 +290,7 @@ export class PasswordPolicyEngine {
   /**
    * Store password in history
    */
-  async storePasswordHistory(userId: string, passwordHash: string, algorithm: 'argon2id' | 'bcrypt' = 'bcrypt'): Promise<void> {
+  async storePasswordHistory(userId: string, passwordHash: string, algorithm: 'argon2id' | 'bcrypt' = 'argon2id'): Promise<void> {
     try {
       // Add new entry
       await this.supabase

@@ -11,7 +11,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
-import { generateSecureRandom, createSecurityEvent, getClientIP } from '@/lib/security/server'
+import { generateSecureRandom, generateSecurePasswordResetToken, validatePasswordResetToken, createSecurityEvent, getClientIP, hashPassword } from '@/lib/security/server'
 import { passwordPolicyEngine } from './password-policy'
 import { NextRequest } from 'next/server'
 import { createHash, timingSafeEqual } from 'crypto'
@@ -438,9 +438,13 @@ export class PasswordResetManager {
       }
 
       // Store password in history
-      const bcrypt = await import('bcryptjs')
-      const hashedPassword = await bcrypt.hash(newPassword, 12)
-      await passwordPolicyEngine.storePasswordHistory(validation.userId, hashedPassword)
+      // Use enhanced Argon2id password hashing
+      const hashResult = await hashPassword(newPassword)
+      await passwordPolicyEngine.storePasswordHistory(
+        validation.userId, 
+        hashResult.hash, 
+        hashResult.algorithm
+      )
 
       // Mark token as used
       await this.supabase
@@ -557,31 +561,33 @@ export class PasswordResetManager {
     userAgent: string,
     requiresMFA: boolean = false
   ): Promise<PasswordResetToken> {
-    // Generate cryptographically secure token
-    const token = generateSecureRandom(this.config.tokenLength)
-    const tokenHash = this.hashToken(token)
+    // Generate enhanced secure token with all security features
+    const tokenData = generateSecurePasswordResetToken()
     const tokenId = generateSecureRandom(16)
-    const expiresAt = new Date(Date.now() + this.config.tokenExpiry)
-
-    // Store token in database
+    const expiresAt = tokenData.expiresAt
+    
+    // Store enhanced token data in database
     await this.supabase
       .from('password_reset_tokens')
       .insert({
         id: tokenId,
         user_id: userId,
-        token_hash: tokenHash,
+        token_hash: tokenData.tokenHash,
+        token_secret: tokenData.secret,
         expires_at: expiresAt.toISOString(),
         requested_ip: requestIP,
         requested_user_agent: userAgent,
         verification_method: method,
         requires_mfa: requiresMFA,
-        max_attempts: this.config.maxAttempts
+        max_attempts: this.config.maxAttempts,
+        single_use_enforced: true,
+        algorithm: tokenData.metadata.algorithm
       })
-
+    
     return {
       id: tokenId,
-      token, // Only returned here, never stored
-      tokenHash,
+      token: tokenData.token, // Only returned here, never stored
+      tokenHash: tokenData.tokenHash,
       userId,
       expiresAt,
       method,

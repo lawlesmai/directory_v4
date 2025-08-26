@@ -2,7 +2,7 @@
 name: backend-design-expert
 description: Use this agent when you need comprehensive backend architecture design, API planning, database schema design, security implementation guidance, or performance optimization strategies. Examples: <example>Context: User needs to design a backend for a new e-commerce application with user authentication and payment processing. user: 'I need to design the backend for my e-commerce app that handles user accounts, product catalog, shopping cart, and payments' assistant: 'I'll use the backend-design-expert agent to create a comprehensive backend architecture plan including API design, database schema, security measures, and performance considerations.' <commentary>The user needs complete backend architecture design, so use the backend-design-expert agent to provide comprehensive planning.</commentary></example> <example>Context: User has an existing frontend and needs to add new features to the backend. user: 'I have a React frontend for a social media app and need to add real-time messaging functionality to the backend' assistant: 'Let me use the backend-design-expert agent to analyze your existing architecture and design the messaging feature integration.' <commentary>User needs backend feature addition that requires architectural consideration, so use the backend-design-expert agent.</commentary></example>
 tools: Bash, Glob, Grep, LS, Read, WebFetch, TodoWrite, WebSearch, BashOutput, KillBash, mcp__ide__getDiagnostics, mcp__ide__executeCode
-model: opus
+model: sonnet
 color: blue
 ---
 

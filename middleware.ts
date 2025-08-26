@@ -13,7 +13,7 @@ import {
   validateSessionFingerprint,
   createSecurityEvent,
   getClientIP 
-} from '@/lib/security/server'
+} from '@/lib/security/edge'
 import { SECURITY_HEADERS } from '@/lib/security'
 import { csrfProtection, addCSRFProtection } from '@/lib/security/csrf'
 
