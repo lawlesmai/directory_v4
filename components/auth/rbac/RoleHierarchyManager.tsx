@@ -5,7 +5,8 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Shield, ChevronRight, ChevronDown, Plus, Edit3, Trash2,
   Users, Settings, AlertTriangle, Eye, EyeOff, Save, X,
-  Move, Grip, Crown, Star, User, Building2, Tool, Zap
+  Move, Grip, Crown, Star, User, Building2, Wrench, Zap,
+  Search
 } from 'lucide-react';
 import { GlassMorphism } from '../../GlassMorphism';
 import { cn } from '@/lib/utils';
@@ -15,7 +16,7 @@ import type { RoleHierarchyManagerProps, RoleDefinition, UserRole } from './type
 const roleIcons = {
   customer: User,
   business_owner: Building2,
-  service_provider: Tool,
+  service_provider: Wrench,
   moderator: Shield,
   admin: Crown,
   super_admin: Zap
@@ -519,7 +520,7 @@ const RoleEditor: React.FC<RoleEditorProps> = ({
             </label>
             <select
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value as 'user' | 'custom' | 'business' | 'system' })}
               disabled={loading}
               className="w-full px-3 py-2 bg-navy-dark/50 border border-sage/30 rounded-lg text-cream
                          focus:outline-none focus:ring-2 focus:ring-teal-primary/50"
@@ -723,7 +724,7 @@ export const RoleHierarchyManager: React.FC<RoleHierarchyManagerProps> = ({
     setExpandedNodes(new Set());
   };
 
-  const currentEditingRole = editingRole ? roles.find(r => r.id === editingRole) : null;
+  const currentEditingRole = editingRole ? roles.find(r => r.id === editingRole) || null : null;
 
   return (
     <GlassMorphism

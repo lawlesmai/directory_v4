@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
             response_time_ms: Math.round(responseTime),
             search_filters: filters,
             user_location: location ? `POINT(${location.lng} ${location.lat})` : null,
-          });
+          } as any);
 
         if (error) {
           console.error('Failed to track search analytics:', error);
@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
             result_count: 0,
             response_time_ms: Math.round(responseTime),
             search_filters: performanceData,
-          });
+          } as any);
 
         if (error) {
           console.error('Failed to track performance metrics:', error);
@@ -276,10 +276,10 @@ export async function GET(request: NextRequest) {
         }
 
         const summary = {
-          totalSearches: metrics?.reduce((sum, day) => sum + day.total_searches, 0) || 0,
-          avgResponseTime: metrics?.reduce((sum, day) => sum + day.avg_response_time, 0) / (metrics?.length || 1) || 0,
-          avgResultCount: metrics?.reduce((sum, day) => sum + day.avg_results, 0) / (metrics?.length || 1) || 0,
-          zeroResultRate: metrics?.reduce((sum, day) => sum + day.zero_result_rate, 0) / (metrics?.length || 1) || 0,
+          totalSearches: metrics?.reduce((sum: any, day: any) => sum + day.total_searches, 0) || 0,
+          avgResponseTime: metrics?.reduce((sum: any, day: any) => sum + day.avg_response_time, 0) / (metrics?.length || 1) || 0,
+          avgResultCount: metrics?.reduce((sum: any, day: any) => sum + day.avg_results, 0) / (metrics?.length || 1) || 0,
+          zeroResultRate: metrics?.reduce((sum: any, day: any) => sum + day.zero_result_rate, 0) / (metrics?.length || 1) || 0,
           dailyMetrics: metrics || []
         };
 

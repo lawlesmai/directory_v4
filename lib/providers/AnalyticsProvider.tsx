@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import { initializeAnalytics, Analytics } from '../../utils/analytics';
+import Analytics, { initializeAnalytics } from '../../utils/analytics';
 
 interface AnalyticsContextType {
   analytics: Analytics | null;

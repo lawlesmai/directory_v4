@@ -6,6 +6,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { PermissionContext, PermissionResult } from './middleware'
 
+// Re-export types for external use
+export type { PermissionContext } from './middleware'
+
 export interface UserPermission {
   resourceName: string
   actionName: string
@@ -82,6 +85,39 @@ export class ClientRBACChecker {
     } catch (error) {
       console.error('Permission check failed:', error)
       return false
+    }
+  }
+
+  /**
+   * Get all permissions for a user
+   */
+  async getUserPermissions(
+    userId?: string,
+    context: PermissionContext = {}
+  ): Promise<UserPermission[]> {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user && !userId) return []
+
+      const response = await fetch('/api/rbac/permissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId || user?.id,
+          context,
+          getAllPermissions: true
+        })
+      })
+
+      if (!response.ok) return []
+
+      const result = await response.json()
+      return result.data?.permissions || []
+    } catch (error) {
+      console.error('Failed to fetch user permissions:', error)
+      return []
     }
   }
 

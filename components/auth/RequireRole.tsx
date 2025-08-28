@@ -7,6 +7,7 @@ import {
   hasPermission, 
   hasAnyPermission, 
   hasAllPermissions,
+  getUserRole as getProfileUserRole,
   type Permission,
   type UserRole
 } from './ProtectedRoute';
@@ -213,8 +214,8 @@ export const useRoleCheck = () => {
     return requireAll ? hasAllPermissions(profile, permissions) : hasAnyPermission(profile, permissions);
   }, [profile]);
 
-  const getUserRole = React.useCallback((): UserRole => {
-    return getUserRole(profile);
+  const currentUserRole = React.useCallback((): UserRole => {
+    return getProfileUserRole(profile);
   }, [profile]);
 
   const isAuthenticated = !!user;
@@ -224,7 +225,7 @@ export const useRoleCheck = () => {
     checkRoles,
     checkPermission,
     checkPermissions,
-    getUserRole,
+    getUserRole: currentUserRole,
     isAuthenticated,
     profile,
     user

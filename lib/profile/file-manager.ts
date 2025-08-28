@@ -268,7 +268,7 @@ export class FileManager {
         // Create database record
         const { data: fileRecord, error: dbError } = await this.supabase
           .from('user_files')
-          .insert({
+          .insert([{
             id: fileId,
             user_id: userId,
             file_name: secureFileName,
@@ -299,7 +299,7 @@ export class FileManager {
             gdpr_category: options.gdprCategory,
             retention_policy: options.retentionPolicy || 'standard',
             uploaded_by: userId
-          })
+          }])
           .select()
           .single()
 
@@ -622,7 +622,7 @@ export class FileManager {
       const totalSize = files.reduce((sum, file) => sum + file.file_size, 0)
 
       // Log GDPR export activity
-      await this.supabase.from('gdpr_compliance_logs').insert({
+      await this.supabase.from('gdpr_compliance_logs').insert([{
         user_id: userId,
         activity_type: 'files_export',
         activity_description: 'User files exported for GDPR compliance',
@@ -632,7 +632,7 @@ export class FileManager {
         automated: false,
         success: true,
         performed_by: userId
-      })
+      }])
 
       return {
         success: true,
@@ -681,7 +681,7 @@ export class FileManager {
       }
 
       // Log GDPR deletion activity
-      await this.supabase.from('gdpr_compliance_logs').insert({
+      await this.supabase.from('gdpr_compliance_logs').insert([{
         user_id: userId,
         activity_type: 'files_deletion',
         activity_description: 'User files deleted for GDPR compliance',
@@ -691,7 +691,7 @@ export class FileManager {
         automated: false,
         success: true,
         performed_by: userId
-      })
+      }])
 
       return {
         success: true,
@@ -1015,7 +1015,7 @@ export class FileManager {
 
   private async logFileAccess(logData: FileAccessLog): Promise<void> {
     try {
-      await this.supabase.from('file_access_logs').insert({
+      await this.supabase.from('file_access_logs').insert([{
         file_id: logData.file_id,
         user_id: logData.user_id,
         access_type: logData.access_type,
@@ -1024,7 +1024,7 @@ export class FileManager {
         user_agent: logData.user_agent,
         success: logData.success,
         error_message: logData.error_message
-      })
+      }])
     } catch (error) {
       console.error('Failed to log file access:', error)
       // Non-critical error, continue execution

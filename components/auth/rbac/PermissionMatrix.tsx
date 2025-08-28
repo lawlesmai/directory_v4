@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Grid3X3, Check, X, AlertTriangle, Eye, EyeOff, Filter,
   Search, Download, Upload, Save, RefreshCw, Lock, Unlock,
-  Shield, Crown, User, Building2, Tool, Zap, ChevronDown,
+  Shield, Crown, User, Building2, Wrench, Zap, ChevronDown,
   ChevronRight, Info, Plus, Minus, RotateCcw, Settings,
   TrendingUp, Star
 } from 'lucide-react';
@@ -42,7 +42,7 @@ const riskLevelColors = {
 const roleIcons = {
   customer: User,
   business_owner: Building2,
-  service_provider: Tool,
+  service_provider: Wrench,
   moderator: Shield,
   admin: Crown,
   super_admin: Zap
@@ -305,7 +305,7 @@ const ResourceGroup: React.FC<ResourceGroupProps> = ({
                           </p>
                         </div>
                         {(permission.dependencies?.length || 0) > 0 && (
-                          <Info className="w-3 h-3 text-gold-primary" title="Has dependencies" />
+                          <Info className="w-3 h-3 text-gold-primary" aria-label="Has dependencies" />
                         )}
                       </div>
                     </div>

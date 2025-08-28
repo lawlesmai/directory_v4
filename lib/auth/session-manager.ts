@@ -167,7 +167,7 @@ export class SessionManager {
 
       const { error } = await this.serviceClient
         .from('user_sessions')
-        .insert(sessionData)
+        .insert([sessionData])
 
       if (error) {
         console.error('Failed to create session:', error)
@@ -558,7 +558,7 @@ export class SessionManager {
     try {
       const headersList = await headers()
       
-      await this.serviceClient.from('auth_audit_logs').insert({
+      await this.serviceClient.from('auth_audit_logs').insert([{
         event_type: eventType,
         event_category: 'session',
         user_id: userId,
@@ -566,7 +566,7 @@ export class SessionManager {
         success: true,
         ip_address: headersList.get('x-forwarded-for') || 'unknown',
         user_agent: headersList.get('user-agent') || 'unknown'
-      })
+      }])
     } catch (error) {
       console.error('Failed to log session event:', error)
     }
@@ -583,7 +583,7 @@ export class SessionManager {
     try {
       const headersList = await headers()
       
-      await this.serviceClient.from('security_events').insert({
+      await this.serviceClient.from('security_events').insert([{
         event_type: eventType,
         severity: 'high',
         user_id: userId,
@@ -591,7 +591,7 @@ export class SessionManager {
         details,
         ip_address: headersList.get('x-forwarded-for') || 'unknown',
         user_agent: headersList.get('user-agent') || 'unknown'
-      })
+      }])
     } catch (error) {
       console.error('Failed to log security event:', error)
     }
@@ -631,5 +631,4 @@ export async function cleanupExpiredSessions(): Promise<number> {
   return await sessionManager.cleanupExpiredSessions()
 }
 
-// Export types
-export type { SessionInfo, SessionResult, DeviceInfo }
+// Types are already exported via their interface declarations above

@@ -6,6 +6,7 @@
  * real-time subscriptions with conflict resolution and offline support.
  */
 
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { preferencesManager } from './preferences-manager'
 import type { UserPreference } from './preferences-manager'
@@ -643,11 +644,3 @@ export function useRealtimePreferences(
   }
 }
 
-// Conditional React hooks support
-try {
-  const React = require('react')
-  useState = React.useState
-  useEffect = React.useEffect
-} catch {
-  // React not available, hooks will be undefined
-}

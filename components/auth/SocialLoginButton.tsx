@@ -150,7 +150,9 @@ export const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
         throw result.error;
       }
       
-      await onSuccess?.(result.user);
+      if (result.user) {
+        await onSuccess?.(result.user);
+      }
       
       // Track success
       if (typeof window !== 'undefined') {

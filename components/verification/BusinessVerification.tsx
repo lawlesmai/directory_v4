@@ -1047,7 +1047,7 @@ export const BusinessVerification: React.FC<BusinessVerificationProps> = ({
     <div className="space-y-6">
       {renderSectionIndicators()}
       
-      <GlassMorphism variant="light" className="p-6">
+      <GlassMorphism variant="subtle" className="p-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSection}

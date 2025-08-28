@@ -53,7 +53,7 @@ export default function PerformanceDashboard({
       const sessionMetrics = analytics.getSessionMetrics();
 
       // Process Core Web Vitals
-      const latestVitals = coreWebVitals.reduce((acc, vital) => {
+      const latestVitals = coreWebVitals.reduce((acc: Record<string, any>, vital: any) => {
         if (!acc[vital.name.toLowerCase()] || vital.timestamp > acc[vital.name.toLowerCase()].timestamp) {
           acc[vital.name.toLowerCase()] = vital;
         }

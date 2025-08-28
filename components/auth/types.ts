@@ -9,6 +9,7 @@ export interface AuthError {
   status?: number;
   code?: string;
   details?: any;
+  provider?: AuthProvider;
 }
 
 // Authentication state
@@ -23,15 +24,36 @@ export interface UserProfile {
   fullName: string;
   phone?: string;
   avatar?: string;
+  bio?: string;
+  website?: string;
+  socialLinks?: {
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+    facebook?: string;
+    website?: string;
+  };
   location?: {
     city?: string;
     state?: string;
     country: string;
   };
-  businessType: 'customer' | 'business_owner' | 'service_provider' | 'other';
+  businessType: 'customer' | 'business_owner' | 'service_provider' | 'admin' | 'other';
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
   preferences: UserPreferences;
+  roleAssignments?: Array<{
+    id: string;
+    roleId: string;
+    businessContext: {
+      id: string;
+      name: string;
+    };
+    isActive: boolean;
+    assignedAt: string;
+    expiresAt?: string;
+    reason?: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -134,10 +156,10 @@ export interface AuthModalProps {
 }
 
 // Loading state types
-export type LoadingState = 'idle' | 'loading' | 'success' | 'error';
+export type AuthLoadingState = 'idle' | 'loading' | 'success' | 'error';
 
 export interface LoadingStateProps {
-  state: LoadingState;
+  state: AuthLoadingState;
   message?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -152,7 +174,7 @@ export interface ErrorDisplayProps {
 }
 
 // Field validation state
-export type ValidationState = 'default' | 'success' | 'error' | 'warning';
+// ValidationState moved to validations.ts to avoid duplication
 
 export interface FormFieldProps {
   label: string;

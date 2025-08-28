@@ -394,11 +394,16 @@ export class SecurityIntegrationLayer {
         await incidentManagement.createIncidentFromEvent(
           { 
             id: event.id || `event_${Date.now()}`,
-            type: event.type || 'unknown',
+            type: (event.type || 'unknown') as any,
             severity: event.severity || 'medium',
             ipAddress: event.ipAddress || 'unknown',
             description: 'Critical security event detected',
-            evidence: {}
+            evidence: {},
+            riskScore: (event as any).riskScore || 0.5,
+            timestamp: (event as any).timestamp || new Date(),
+            source: (event as any).source || 'security_integration',
+            requiresInvestigation: true,
+            adminNotified: false
           },
           result.threatDetections
         )
@@ -432,7 +437,7 @@ export class SecurityIntegrationLayer {
       )
       
       // Create incidents for high-risk events
-      const incidents = []
+      const incidents: any[] = []
       for (let i = 0; i < batch.length; i++) {
         const event = batch[i]
         const result = results[i]
@@ -442,11 +447,16 @@ export class SecurityIntegrationLayer {
           const incident = await incidentManagement.createIncidentFromEvent(
             {
               id: event.id,
-              type: event.type,
+              type: event.type as any,
               severity: event.severity,
               ipAddress: event.ipAddress,
               description: event.type,
-              evidence: {}
+              evidence: {},
+              riskScore: (event as any).riskScore || 0.5,
+              timestamp: (event as any).timestamp || new Date(),
+              source: (event as any).source || 'security_integration',
+              requiresInvestigation: true,
+              adminNotified: false
             },
             result.threatDetections
           )

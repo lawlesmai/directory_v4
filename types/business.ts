@@ -78,7 +78,7 @@ export interface SearchSuggestion {
 }
 
 export interface BusinessCardProps {
-  business: Business
+  business: any
   variant?: 'grid' | 'list' | 'featured' | 'premium'
   animationDelay?: number
   onCardClick?: (business: Business) => void

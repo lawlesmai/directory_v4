@@ -217,7 +217,7 @@ export class MFAAuditLogger {
       // Insert audit record
       const { data: auditRecord, error: insertError } = await supabase
         .from('auth_audit_logs')
-        .insert({
+        .insert([{
           event_type: event.eventType,
           event_category: this.getEventCategory(event.eventType),
           user_id: event.userId,
@@ -238,7 +238,7 @@ export class MFAAuditLogger {
             retention_until: retentionDate.toISOString()
           },
           created_at: new Date().toISOString()
-        })
+        }])
         .select('id')
         .single();
       
@@ -310,7 +310,7 @@ export class MFAAuditLogger {
     // Log to verification attempts table as well
     await supabase
       .from('mfa_verification_attempts')
-      .insert({
+      .insert([{
         user_id: params.userId,
         challenge_id: params.challengeId,
         verification_method: params.method,
@@ -322,7 +322,7 @@ export class MFAAuditLogger {
         is_suspicious: (params.riskFactors?.length || 0) > 0,
         suspicion_reasons: params.riskFactors || [],
         fraud_score: params.trustScore ? 1 - params.trustScore : 0
-      });
+      }]);
   }
   
   /**
@@ -399,7 +399,7 @@ export class MFAAuditLogger {
     // Insert into security events table
     await supabase
       .from('security_events')
-      .insert({
+      .insert([{
         event_type: params.eventType,
         severity: params.severity,
         user_id: params.userId,
@@ -408,7 +408,7 @@ export class MFAAuditLogger {
         ip_address: params.ipAddress,
         action_taken: params.automaticResponse,
         resolved: false
-      });
+      }]);
   }
   
   /**
@@ -513,17 +513,17 @@ export class MFAAuditLogger {
       
       // Calculate metrics
       const totalEvents = events.length;
-      const successfulEvents = events.filter(e => e.success).length;
+      const successfulEvents = events.filter((e: any) => e.success).length;
       const successRate = totalEvents > 0 ? (successfulEvents / totalEvents) * 100 : 0;
       
       // Group by event type
-      const eventsByType = events.reduce((acc, event) => {
+      const eventsByType = events.reduce((acc: any, event: any) => {
         acc[event.event_type] = (acc[event.event_type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
       
       // Group by severity
-      const eventsBySeverity = events.reduce((acc, event) => {
+      const eventsBySeverity = events.reduce((acc: any, event: any) => {
         const severity = MFA_AUDIT_CONFIG.eventTypes[event.event_type as keyof typeof MFA_AUDIT_CONFIG.eventTypes] || 'low';
         acc[severity] = (acc[severity] || 0) + 1;
         return acc;
@@ -531,17 +531,17 @@ export class MFAAuditLogger {
       
       // Top failure reasons
       const failureReasons = events
-        .filter(e => !e.success && e.failure_reason)
-        .reduce((acc, event) => {
+        .filter((e: any) => !e.success && e.failure_reason)
+        .reduce((acc: any, event: any) => {
           const reason = event.failure_reason!;
           acc[reason] = (acc[reason] || 0) + 1;
           return acc;
         }, {} as Record<string, number>);
       
       const topFailureReasons = Object.entries(failureReasons)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
         .slice(0, 10)
-        .map(([reason, count]) => ({ reason, count }));
+        .map(([reason, count]) => ({ reason, count: count as number }));
       
       // Risk trends (simplified)
       const riskTrends = await this.calculateRiskTrends(params.startDate, params.endDate);
@@ -584,7 +584,7 @@ export class MFAAuditLogger {
       errors.push('Success status is required');
     }
     
-    if (!event.ipAddress && event.eventType !== 'system_event') {
+    if (!event.ipAddress && (event.eventType as string) !== 'system_event') {
       errors.push('IP address is required for user events');
     }
     
@@ -698,7 +698,7 @@ export class MFAAuditLogger {
       .eq('user_id', adminUserId)
       .eq('is_active', true);
     
-    const roleNames = data?.map(r => (r.roles as any)?.name).filter(Boolean) || [];
+    const roleNames = data?.map((r: any) => (r.roles as any)?.name).filter(Boolean) || [];
     
     if (roleNames.includes('super_admin')) return 'super_admin';
     if (roleNames.includes('admin')) return 'admin';
@@ -744,13 +744,13 @@ export class MFAAuditLogger {
   private static async triggerSecurityReview(event: AuditEvent): Promise<void> {
     await supabase
       .from('security_events')
-      .insert({
+      .insert([{
         event_type: 'security_review_required',
         severity: 'high',
         user_id: event.userId,
         description: `Critical admin action requires security review: ${event.eventType}`,
         details: event.eventData
-      });
+      }]);
   }
   
   private static async updateAuditMetrics(eventType: string, severity: string, success: boolean): Promise<void> {

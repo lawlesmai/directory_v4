@@ -8,7 +8,7 @@ interface BusinessCardImageProps {
   src: string
   alt: string
   isHovered: boolean
-  variant?: 'grid' | 'list' | 'featured'
+  variant?: 'grid' | 'list' | 'featured' | 'premium'
 }
 
 export const BusinessCardImage: React.FC<BusinessCardImageProps> = ({
@@ -20,7 +20,8 @@ export const BusinessCardImage: React.FC<BusinessCardImageProps> = ({
   const containerClasses = {
     grid: 'h-48 w-full',
     list: 'h-32 w-48 flex-shrink-0',
-    featured: 'h-64 w-full'
+    featured: 'h-64 w-full',
+    premium: 'h-52 w-full'
   }
 
   return (

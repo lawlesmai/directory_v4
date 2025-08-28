@@ -346,11 +346,11 @@ export class OAuthRateLimiter {
   ): Promise<void> {
     await this.supabase
       .from('rate_limit_requests')
-      .insert({
+      .insert([{
         limit_type: limitType,
         identifier,
         created_at: new Date(timestamp).toISOString()
-      })
+      }])
   }
   
   private async updateRateLimitBlock(

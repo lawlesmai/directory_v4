@@ -7,7 +7,7 @@ import {
   Clock, Shield, Crown, Building2, MapPin, AlertTriangle,
   Check, X, Eye, EyeOff, ChevronDown, ChevronRight,
   MoreHorizontal, Edit3, Trash2, RefreshCw, Download,
-  Upload, Settings, Info, Zap, Tool, User
+  Upload, Settings, Info, Zap, Wrench, User
 } from 'lucide-react';
 import { GlassMorphism } from '../../GlassMorphism';
 import { cn } from '@/lib/utils';
@@ -24,7 +24,7 @@ import type { UserProfile } from '../types';
 const roleIcons = {
   customer: User,
   business_owner: Building2,
-  service_provider: Tool,
+  service_provider: Wrench,
   moderator: Shield,
   admin: Crown,
   super_admin: Zap
@@ -184,7 +184,7 @@ const UserCard: React.FC<UserCardProps> = ({
             <div className="flex items-center gap-2">
               <h3 className="font-medium text-cream truncate">{user.fullName}</h3>
               {!user.isEmailVerified && (
-                <AlertTriangle className="w-4 h-4 text-gold-primary" title="Email not verified" />
+                <AlertTriangle className="w-4 h-4 text-gold-primary" aria-label="Email not verified" />
               )}
             </div>
             <p className="text-sm text-sage/70 truncate">{user.email}</p>

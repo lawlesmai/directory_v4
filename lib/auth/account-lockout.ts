@@ -130,10 +130,10 @@ export class AccountLockoutManager {
         .rpc('check_account_lockout', {
           p_user_id: userId,
           p_ip_address: ipAddress
-        })
+        } as any)
 
-      if (lockoutData?.[0]?.is_locked) {
-        const lockout = lockoutData[0]
+      if ((lockoutData as any)?.[0]?.is_locked) {
+        const lockout = (lockoutData as any)[0]
         return {
           isLocked: true,
           lockoutType: this.determineLockoutType(lockout.reason),
@@ -148,7 +148,7 @@ export class AccountLockoutManager {
       }
 
       // Check recent failed attempts for progressive lockout
-      const recentAttempts = await this.getRecentFailedAttempts(userId, ipAddress, policy)
+      const recentAttempts = await this.getRecentFailedAttempts(policy, userId, ipAddress)
       
       if (recentAttempts.userAttempts >= policy.maxFailedAttempts ||
           recentAttempts.ipAttempts >= policy.maxIPAttempts) {
@@ -230,7 +230,7 @@ export class AccountLockoutManager {
             reason: event.reason,
             ...event.metadata
           }
-        })
+        } as any)
 
       // Check if this triggers a lockout
       const lockoutStatus = await this.checkLockoutStatus(event.userId, event.ipAddress, role)
@@ -281,7 +281,7 @@ export class AccountLockoutManager {
       // Insert lockout record
       const { error } = await this.supabase
         .from('account_security_events')
-        .insert({
+        .insert([{
           user_id: event.userId,
           event_type: 'account_locked',
           ip_address: event.ipAddress,
@@ -295,7 +295,7 @@ export class AccountLockoutManager {
             requires_admin_unlock: policy.requireAdminUnlock,
             ...event.metadata
           }
-        })
+        }])
 
       if (error) {
         console.error('Lockout application error:', error)
@@ -357,7 +357,7 @@ export class AccountLockoutManager {
       // Record unlock event
       await this.supabase
         .from('account_security_events')
-        .insert({
+        .insert([{
           user_id: request.userId,
           event_type: 'account_unlocked',
           ip_address: request.ipAddress || '0.0.0.0',
@@ -366,7 +366,7 @@ export class AccountLockoutManager {
             admin_user_id: request.adminUserId,
             reason: request.reason
           }
-        })
+        }])
 
       // Notify user of unlock
       if (request.userId && request.method === 'admin') {
@@ -397,13 +397,13 @@ export class AccountLockoutManager {
    * Get recent failed attempts
    */
   private async getRecentFailedAttempts(
+    policy: LockoutPolicy,
     userId?: string,
-    ipAddress?: string,
-    policy: LockoutPolicy
+    ipAddress?: string
   ): Promise<{ userAttempts: number; ipAttempts: number }> {
     const windowStart = new Date(Date.now() - policy.attemptWindowMinutes * 60 * 1000)
 
-    const queries = []
+    const queries: any[] = []
 
     // User-based attempts
     if (userId) {
@@ -461,7 +461,7 @@ export class AccountLockoutManager {
           .eq('event_type', 'failed_login')
           .gte('created_at', oneHourAgo.toISOString())
 
-        const uniqueIPs = new Set(ipData?.map(d => d.ip_address))
+        const uniqueIPs = new Set(ipData?.map((d: any) => d.ip_address))
         if (uniqueIPs.size > 5) {
           patterns.push('multiple_ip_attack')
         }
@@ -515,7 +515,7 @@ export class AccountLockoutManager {
     try {
       await this.supabase
         .from('security_incidents')
-        .insert({
+        .insert([{
           incident_type: 'brute_force',
           severity: 'high',
           user_id: event.userId,
@@ -530,7 +530,7 @@ export class AccountLockoutManager {
           },
           automated_response: 'Account lockout applied',
           admin_notified: true
-        })
+        }])
 
       // Notify security team
       await this.notifySecurityTeam(event)
@@ -547,7 +547,7 @@ export class AccountLockoutManager {
     try {
       await this.supabase
         .from('security_incidents')
-        .insert({
+        .insert([{
           incident_type: event.eventType === 'manual_lock' ? 'admin_intervention_required' : 'brute_force',
           severity,
           user_id: event.userId,
@@ -560,7 +560,7 @@ export class AccountLockoutManager {
             metadata: event.metadata
           },
           automated_response: 'Account lockout applied'
-        })
+        }])
     } catch (error) {
       console.error('Security incident creation error:', error)
     }

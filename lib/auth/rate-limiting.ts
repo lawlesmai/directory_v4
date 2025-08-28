@@ -219,7 +219,7 @@ export class RateLimiterService {
       // Record in rate limits table
       await supabase
         .from('mfa_rate_limits')
-        .insert({
+        .insert([{
           user_id: context.userId,
           ip_address: context.ipAddress,
           device_id: context.deviceId,
@@ -227,7 +227,7 @@ export class RateLimiterService {
           window_duration_minutes: this.getOperationConfig(operation).windowMinutes,
           max_attempts: this.getOperationConfig(operation).maxAttempts,
           attempts: 1
-        });
+        }]);
       
       // Update aggregate statistics
       await this.updateRateLimitStats(operation, context, success);
@@ -291,7 +291,7 @@ export class RateLimiterService {
       // Create block record
       await supabase
         .from('mfa_rate_limits')
-        .insert({
+        .insert([{
           user_id: userId,
           limit_type: operation,
           attempts: currentAttempts,
@@ -299,7 +299,7 @@ export class RateLimiterService {
           max_attempts: config.maxAttempts,
           is_blocked: true,
           blocked_until: cooldownUntil.toISOString()
-        });
+        }]);
       
       return {
         allowed: false,
@@ -514,7 +514,7 @@ export class RateLimiterService {
       // Trigger security review for repeated failures
       await supabase
         .from('security_events')
-        .insert({
+        .insert([{
           event_type: 'repeated_mfa_failures',
           severity: escalationLevel >= 3 ? 'high' : 'medium',
           user_id: context.userId,
@@ -526,7 +526,7 @@ export class RateLimiterService {
             ip_address: context.ipAddress,
             device_id: context.deviceId
           }
-        });
+        }]);
     }
   }
   
@@ -556,7 +556,7 @@ export class RateLimiterService {
     result: RateLimitResult
   ): Promise<void> {
     await MFAAuditLogger.logEvent({
-      eventType: result.allowed ? 'rate_limit_check_passed' : 'rate_limit_triggered',
+      eventType: (result.allowed ? 'rate_limit_check_passed' : 'rate_limit_triggered') as any,
       userId: context.userId,
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
@@ -715,8 +715,8 @@ export class SecurityControlsService {
       .limit(20);
     
     if (recentSessions && recentSessions.length > 5) {
-      const sessionHours = recentSessions.map(s => new Date(s.created_at).getHours());
-      const avgHour = sessionHours.reduce((a, b) => a + b, 0) / sessionHours.length;
+      const sessionHours = recentSessions.map((s: any) => new Date(s.created_at).getHours());
+      const avgHour = sessionHours.reduce((a: number, b: number) => a + b, 0) / sessionHours.length;
       const hourDifference = Math.abs(currentHour - avgHour);
       
       if (hourDifference > 6) {

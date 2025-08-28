@@ -118,11 +118,11 @@ export class PreferencesManager {
           .rpc('get_user_preferences_with_inheritance', {
             user_uuid: userId,
             pref_category: category || null
-          })
+          } as any)
 
         if (error) throw error
 
-        return data.map(this.mapPreferenceRow)
+        return (data as any).map(this.mapPreferenceRow)
       } else {
         // Get only direct user preferences
         let query = this.supabase
@@ -272,7 +272,7 @@ export class PreferencesManager {
         // Create new preference
         const { data, error } = await this.supabase
           .from('user_preferences')
-          .insert({
+          .insert([{
             user_id: userId,
             category,
             subcategory: options.subcategory,
@@ -289,7 +289,7 @@ export class PreferencesManager {
             changed_by: userId,
             change_reason: options.changeReason || 'User update',
             expires_at: options.expiresAt
-          })
+          }])
           .select()
           .single()
 
@@ -429,9 +429,9 @@ export class PreferencesManager {
 
       // Filter by user roles if provided
       if (userRoles && userRoles.length > 0) {
-        return data.filter(template => {
+        return data.filter((template: any) => {
           if (!template.applies_to_roles) return true
-          return template.applies_to_roles.some(role => userRoles.includes(role))
+          return template.applies_to_roles.some((role: any) => userRoles.includes(role))
         })
       }
 
@@ -532,7 +532,7 @@ export class PreferencesManager {
       if (error) throw error
 
       // Log GDPR deletion activity
-      await this.supabase.from('gdpr_compliance_logs').insert({
+      await this.supabase.from('gdpr_compliance_logs').insert([{
         user_id: userId,
         activity_type: 'preferences_deletion',
         activity_description: 'User preferences deleted for GDPR compliance',
@@ -542,7 +542,7 @@ export class PreferencesManager {
         automated: false,
         success: true,
         performed_by: userId
-      })
+      }])
 
       return {
         success: true,
@@ -626,8 +626,8 @@ export class PreferencesManager {
   private validateDataType(
     value: any,
     dataType: string
-  ): { isValid: boolean; errors: string[]; sanitizedValue?: any } {
-    const result = { isValid: true, errors: [] as string[], sanitizedValue: value }
+  ): { isValid: boolean; errors: string[]; warnings?: string[]; sanitizedValue?: any } {
+    const result = { isValid: true, errors: [] as string[], warnings: [] as string[], sanitizedValue: value }
 
     switch (dataType) {
       case 'string':

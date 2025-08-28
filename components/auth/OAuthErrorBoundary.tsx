@@ -14,7 +14,9 @@ import {
   Bug,
   Wifi,
   Shield,
-  Clock
+  Clock,
+  Settings,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GlassMorphism } from '../GlassMorphism';
@@ -246,6 +248,90 @@ const oauthErrorConfigs: Record<OAuthErrorType, OAuthErrorDetails> = {
       'Try using a different browser or device',
       'Use a different authentication method'
     ],
+    retryable: true
+  },
+  unauthorized_client: {
+    type: 'unauthorized_client',
+    title: 'Unauthorized Client',
+    description: 'The client is not authorized to make this request',
+    userMessage: 'There was an authorization issue. Please try again.',
+    icon: Shield,
+    color: 'text-red-500',
+    severity: 'high',
+    recoverable: true,
+    actionable: true,
+    contactSupport: true,
+    troubleshooting: ['Try logging in again', 'Contact support if the issue persists'],
+    retryable: true
+  },
+  unsupported_response_type: {
+    type: 'unsupported_response_type',
+    title: 'Unsupported Response Type',
+    description: 'The server does not support this response type',
+    userMessage: 'This authentication method is not supported. Please try a different method.',
+    icon: AlertTriangle,
+    color: 'text-yellow-500',
+    severity: 'medium',
+    recoverable: true,
+    actionable: true,
+    contactSupport: false,
+    troubleshooting: ['Try a different authentication method'],
+    retryable: false
+  },
+  invalid_scope: {
+    type: 'invalid_scope',
+    title: 'Invalid Scope',
+    description: 'The requested scope is invalid or unknown',
+    userMessage: 'There was a configuration issue. Please contact support.',
+    icon: Settings,
+    color: 'text-orange-500',
+    severity: 'medium',
+    recoverable: false,
+    actionable: false,
+    contactSupport: true,
+    troubleshooting: ['Contact support for assistance'],
+    retryable: false
+  },
+  popup_closed: {
+    type: 'popup_closed',
+    title: 'Authentication Cancelled',
+    description: 'The authentication window was closed before completing',
+    userMessage: 'Authentication was cancelled. Click "Try Again" to restart.',
+    icon: X,
+    color: 'text-gray-500',
+    severity: 'low',
+    recoverable: true,
+    actionable: true,
+    contactSupport: false,
+    troubleshooting: ['Click "Try Again" to restart authentication', 'Make sure to complete the authentication process'],
+    retryable: true
+  },
+  configuration_error: {
+    type: 'configuration_error',
+    title: 'Configuration Error',
+    description: 'There is a configuration problem with the authentication system',
+    userMessage: 'There is a system configuration issue. Please contact support.',
+    icon: Settings,
+    color: 'text-red-500',
+    severity: 'high',
+    recoverable: false,
+    actionable: false,
+    contactSupport: true,
+    troubleshooting: ['Contact support for technical assistance'],
+    retryable: false
+  },
+  email_not_verified: {
+    type: 'email_not_verified',
+    title: 'Email Not Verified',
+    description: 'Your email address has not been verified',
+    userMessage: 'Please verify your email address before continuing.',
+    icon: Mail,
+    color: 'text-blue-500',
+    severity: 'medium',
+    recoverable: true,
+    actionable: true,
+    contactSupport: false,
+    troubleshooting: ['Check your email for verification link', 'Resend verification email if needed'],
     retryable: true
   }
 };

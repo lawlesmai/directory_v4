@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Get signed download URL if export is completed and not expired
-      let downloadUrl = null
+      let downloadUrl: string | null = null
       if (exportRecord.status === 'completed' && 
           exportRecord.expires_at && 
           new Date(exportRecord.expires_at) > new Date()) {
@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
               `${userId}/${exportRecord.id}.${exportRecord.format}`,
               3600 // 1 hour
             )
-          downloadUrl = urlData?.signedUrl
+          downloadUrl = urlData?.signedUrl || null
         } catch (urlError) {
           console.error('Failed to generate download URL:', urlError)
         }

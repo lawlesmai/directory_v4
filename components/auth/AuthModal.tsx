@@ -116,7 +116,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         return (
           <GlassMorphism variant="medium" className="p-8 w-full max-w-md mx-auto">
             <EmailVerificationForm
-              onSuccess={handleAuthSuccess}
+              onSuccess={() => handleAuthSuccess(null)}
               onError={handleAuthError}
               onResend={() => console.log('Resend verification code')}
             />

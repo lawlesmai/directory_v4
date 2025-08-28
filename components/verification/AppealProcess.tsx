@@ -164,7 +164,7 @@ export const AppealProcess: React.FC<AppealProcessProps> = ({
       case 0: return appealTypes.length > 0;
       case 1: return explanation.trim().length >= 50;
       case 2: return true; // Documents are optional
-      case 3: return contactMethod !== '';
+      case 3: return true; // Contact method is always selected (defaults to 'email')
       default: return true;
     }
   };
@@ -358,7 +358,7 @@ export const AppealProcess: React.FC<AppealProcessProps> = ({
         <p className="text-sage/70">Upload additional documents that support your appeal (optional)</p>
       </div>
 
-      <GlassMorphism variant="light" className="p-6">
+      <GlassMorphism variant="subtle" className="p-6">
         <div
           className={cn(
             'border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200',
@@ -510,7 +510,7 @@ export const AppealProcess: React.FC<AppealProcessProps> = ({
       </div>
 
       <div className="space-y-4">
-        <GlassMorphism variant="light" className="p-4">
+        <GlassMorphism variant="subtle" className="p-4">
           <h4 className="font-medium text-cream mb-2">Appeal Reasons</h4>
           <div className="flex flex-wrap gap-2">
             {appealTypes.map((type) => {
@@ -524,13 +524,13 @@ export const AppealProcess: React.FC<AppealProcessProps> = ({
           </div>
         </GlassMorphism>
 
-        <GlassMorphism variant="light" className="p-4">
+        <GlassMorphism variant="subtle" className="p-4">
           <h4 className="font-medium text-cream mb-2">Explanation</h4>
           <p className="text-sage/90 text-sm">{explanation}</p>
         </GlassMorphism>
 
         {supportingDocuments.length > 0 && (
-          <GlassMorphism variant="light" className="p-4">
+          <GlassMorphism variant="subtle" className="p-4">
             <h4 className="font-medium text-cream mb-2">Supporting Documents</h4>
             <div className="space-y-2">
               {supportingDocuments.map((file, index) => (
@@ -543,7 +543,7 @@ export const AppealProcess: React.FC<AppealProcessProps> = ({
           </GlassMorphism>
         )}
 
-        <GlassMorphism variant="light" className="p-4">
+        <GlassMorphism variant="subtle" className="p-4">
           <h4 className="font-medium text-cream mb-2">Contact Preferences</h4>
           <div className="space-y-1">
             <p className="text-sage/90 text-sm">Method: {contactMethod}</p>

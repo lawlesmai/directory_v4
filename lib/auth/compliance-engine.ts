@@ -798,7 +798,7 @@ export class ComplianceEngine {
         
         // Check if item is past retention period
         if (now > item.deleteAfter) {
-          if (item.classification === 'pii') {
+          if (item.type === 'pii') {
             // Anonymize PII data
             await this.anonymizeDataItem(item)
             result.itemsAnonymized++
@@ -971,7 +971,7 @@ export class ComplianceEngine {
     for (const violation of violations) {
       await this.supabase
         .from('compliance_violations')
-        .insert({
+        .insert([{
           framework: violation.framework,
           violation_type: violation.type,
           severity: violation.severity,
@@ -981,7 +981,7 @@ export class ComplianceEngine {
           affected_records: violation.impact.affectedRecords,
           business_impact: violation.impact.businessImpact,
           reporting_required: violation.reportingRequired
-        })
+        }])
     }
   }
   
@@ -1032,14 +1032,14 @@ export class ComplianceEngine {
   private async storeComplianceReport(report: ComplianceReport): Promise<void> {
     await this.supabase
       .from('compliance_reports')
-      .insert({
+      .insert([{
         framework: report.framework,
         report_type: report.reportType,
         generated_at: report.generatedAt.toISOString(),
         overall_score: report.summary.overallScore,
         violations_found: report.summary.violationsFound,
         report_data: report
-      })
+      }])
   }
   
   private async getDataItemsForRetentionReview(): Promise<DataItem[]> {
@@ -1057,13 +1057,13 @@ export class ComplianceEngine {
   private async logRetentionActivity(result: any): Promise<void> {
     await this.supabase
       .from('auth_audit_logs')
-      .insert({
+      .insert([{
         event_type: 'data_retention_enforcement',
         event_category: 'compliance',
         success: true,
         event_data: result,
         created_at: new Date().toISOString()
-      })
+      }])
   }
 }
 

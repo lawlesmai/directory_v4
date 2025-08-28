@@ -299,7 +299,6 @@ export const ProviderSelection: React.FC<ProviderSelectionProps> = ({
               <SocialLoginIconButton
                 provider={method.id as AuthProvider}
                 size={layout === 'compact' ? 'sm' : 'md'}
-                showTooltip={false}
                 onSuccess={() => {}}
                 onError={() => {}}
               />
@@ -544,7 +543,6 @@ export const QuickProviderSelect: React.FC<{
               <SocialLoginIconButton
                 provider={method as AuthProvider}
                 size="sm"
-                showTooltip={false}
                 onSuccess={() => {}}
                 onError={() => {}}
               />

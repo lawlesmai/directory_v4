@@ -5,7 +5,7 @@ import { Business } from '@/types/business'
 
 interface BusinessCardContentProps {
   business: Business
-  variant?: 'grid' | 'list' | 'featured'
+  variant?: 'grid' | 'list' | 'featured' | 'premium'
   headingId: string
   descriptionId: string
 }
@@ -17,11 +17,13 @@ export const BusinessCardContent: React.FC<BusinessCardContentProps> = ({
   descriptionId
 }) => {
   const isListVariant = variant === 'list'
+  const isPremiumVariant = variant === 'premium'
   
   return (
     <div className={cn(
       'card-content p-4 space-y-3',
-      isListVariant && 'flex-1'
+      isListVariant && 'flex-1',
+      isPremiumVariant && 'p-6 space-y-4'
     )}>
       <div className="business-info">
         <h3 

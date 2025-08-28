@@ -63,7 +63,7 @@ export class OnboardingIntegrationService {
 
       if (rolesError) throw rolesError;
 
-      const roles = userRoles?.map(ur => (ur.roles as any).name) || ['user'];
+      const roles = userRoles?.map((ur: any) => (ur.roles as any).name) || ['user'];
 
       // Check MFA status
       const { data: mfaConfig, error: mfaError } = await supabase
@@ -97,7 +97,7 @@ export class OnboardingIntegrationService {
 
       if (completedError) throw completedError;
 
-      const completedFlows = completedFlowRecords?.map(record => record.flow_id) || [];
+      const completedFlows = completedFlowRecords?.map((record: any) => record.flow_id) || [];
 
       // Check business verification requirements
       const businessVerificationRequired = roles.includes('business_owner') || 

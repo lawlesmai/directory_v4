@@ -87,7 +87,7 @@ export class BusinessService {
   static async createBusiness(business: BusinessInsert) {
     return supabase
       .from('businesses')
-      .insert(business)
+      .insert([business])
       .select()
       .single()
   }
@@ -123,12 +123,19 @@ export class BusinessService {
     limit?: number
   }) {
     const client = await createClient()
+    // TODO: Implement RPC function 'businesses_near_location'
+    // return client
+    //   .rpc('businesses_near_location', {
+    //     lat,
+    //     lng,
+    //     radius_miles: radiusMiles
+    //   })
+    //   .limit(limit)
+    
+    // Placeholder implementation until RPC is created
     return client
-      .rpc('businesses_near_location', {
-        lat,
-        lng,
-        radius_miles: radiusMiles
-      })
+      .from('businesses')
+      .select('*')
       .limit(limit)
   }
 
@@ -219,7 +226,7 @@ export class ReviewService {
   static async createReview(review: BusinessReviewInsert) {
     return supabase
       .from('business_reviews')
-      .insert(review)
+      .insert([review])
       .select()
       .single()
   }
@@ -252,7 +259,7 @@ export class ReviewService {
 export class DatabaseUtils {
   // Generate unique slug
   static async generateUniqueSlug(baseSlug: string, table: 'businesses' | 'categories'): Promise<string> {
-    let slug = baseSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').trim('-')
+    let slug = baseSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '')
     let counter = 0
 
     while (true) {

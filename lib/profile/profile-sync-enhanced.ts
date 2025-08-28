@@ -102,8 +102,6 @@ export interface ProviderCapabilities {
  * avatar synchronization, preference integration, and intelligent conflict resolution.
  */
 export class EnhancedProfileSyncManager extends ProfileSyncManager {
-  private supabase = createClient()
-
   // Provider capability mappings
   private static readonly PROVIDER_CAPABILITIES: Record<OAuthProvider, ProviderCapabilities> = {
     google: {
@@ -191,7 +189,7 @@ export class EnhancedProfileSyncManager extends ProfileSyncManager {
       })
 
       // Get current profile completion score
-      const { data: beforeCompletion } = await this.supabase
+      const { data: beforeCompletion } = await (this.supabase as any)
         .rpc('calculate_profile_completion_score', { user_uuid: userId })
         .single()
 
@@ -288,7 +286,7 @@ export class EnhancedProfileSyncManager extends ProfileSyncManager {
       ))
 
       // Calculate profile completion improvement
-      const { data: afterCompletion } = await this.supabase
+      const { data: afterCompletion } = await (this.supabase as any)
         .rpc('calculate_profile_completion_score', { user_uuid: userId })
         .single()
 
@@ -765,7 +763,7 @@ export class EnhancedProfileSyncManager extends ProfileSyncManager {
       try {
         const resolution = this.determineSmartResolution(conflict, capabilities)
         
-        if (resolution.action === 'auto_resolve') {
+        if (resolution.action === 'auto_resolve' && resolution.choice) {
           await this.resolveProfileConflict(
             userId,
             conflict.field,
@@ -968,20 +966,6 @@ export class EnhancedProfileSyncManager extends ProfileSyncManager {
     return totalPossibleFields > 0 ? fields.length / totalPossibleFields : 0
   }
 
-  private isPlaceholderAvatar(url: string): boolean {
-    if (!url) return true
-    
-    const placeholderPatterns = [
-      'placeholder',
-      'default-avatar',
-      'gravatar.com/avatar/00000',
-      'ui-avatars.com',
-      'robohash.org',
-      'identicon'
-    ]
-
-    return placeholderPatterns.some(pattern => url.toLowerCase().includes(pattern))
-  }
 }
 
 // Export enhanced sync manager instance

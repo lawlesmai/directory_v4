@@ -232,7 +232,7 @@ export const useBusinessData = () => {
   };
 
   const getBusinessFromCache = (slug: string): EnhancedBusiness | undefined => {
-    const cached = queryClient.getQueryData(businessQueryKeys.detail(slug));
+    const cached = queryClient.getQueryData(businessQueryKeys.detail(slug)) as { data?: EnhancedBusiness } | undefined;
     return cached?.data || undefined;
   };
 

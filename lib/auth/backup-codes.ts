@@ -382,7 +382,7 @@ export class BackupCodeService {
       let nearExpiry = false;
       
       if (unusedCodes && unusedCodes.length > 0) {
-        const earliestExpiry = unusedCodes.reduce((earliest, code) => {
+        const earliestExpiry = unusedCodes.reduce((earliest: Date | undefined, code: any) => {
           const expiry = new Date(code.expires_at);
           return !earliest || expiry < earliest ? expiry : earliest;
         }, undefined as Date | undefined);
@@ -558,7 +558,7 @@ export class BackupCodeService {
    * Increments failed attempt counter
    */
   private static async incrementFailedAttempts(userId: string): Promise<void> {
-    await supabase.rpc('increment_mfa_failed_attempts', { user_id: userId });
+    await supabase.rpc('increment_mfa_failed_attempts', { user_id: userId } as any);
   }
   
   /**
@@ -603,7 +603,7 @@ export class BackupCodeService {
   }): Promise<void> {
     await supabase
       .from('auth_audit_logs')
-      .insert({
+      .insert([{
         event_type: `backup_code_${params.eventType}`,
         event_category: 'mfa',
         user_id: params.userId,
@@ -616,7 +616,7 @@ export class BackupCodeService {
           affected_count: params.affectedCount,
           device_id: params.deviceId
         }
-      });
+      }]);
   }
   
   /**
@@ -634,7 +634,7 @@ export class BackupCodeService {
   }): Promise<void> {
     await supabase
       .from('mfa_verification_attempts')
-      .insert({
+      .insert([{
         user_id: params.userId,
         challenge_id: params.challengeId,
         verification_method: 'backup_code',
@@ -642,7 +642,7 @@ export class BackupCodeService {
         is_valid: params.success,
         device_id: params.deviceId,
         ip_address: params.ipAddress
-      });
+      }]);
   }
   
   /**
@@ -655,13 +655,13 @@ export class BackupCodeService {
     // Log critical event
     await supabase
       .from('security_events')
-      .insert({
+      .insert([{
         event_type: 'last_backup_code_used',
         severity: 'high',
         user_id: userId,
         description: 'User has used their last backup code and needs to generate new ones',
         action_taken: 'user_notification_sent'
-      });
+      }]);
   }
 }
 

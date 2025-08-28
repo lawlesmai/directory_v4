@@ -135,7 +135,7 @@ export async function getAuthUser(request?: NextRequest) {
     .eq('user_id', user.id)
     .eq('is_active', true)
 
-  const roles = userRoles?.map(r => r.roles?.name).filter(Boolean) || []
+  const roles = userRoles?.map((r: any) => r.roles?.name).filter(Boolean) || []
   
   return {
     ...user,
@@ -193,7 +193,7 @@ export async function checkRateLimit(
     p_action: action,
     p_max_attempts: maxAttempts,
     p_window_minutes: windowMinutes
-  })
+  } as any)
   
   if (error) {
     console.error('Rate limit check failed:', error)
@@ -280,7 +280,8 @@ export function generateSecureToken(length: number = 32): string {
  * Fixes Critical Security Issue: CVSS 8.7 - Missing Password Hashing
  */
 export async function hashPassword(plainPassword: string): Promise<string> {
-  return await secureHashPassword(plainPassword)
+  const result = await secureHashPassword(plainPassword)
+  return typeof result === 'string' ? result : result.hash
 }
 
 /**
@@ -288,7 +289,8 @@ export async function hashPassword(plainPassword: string): Promise<string> {
  * Uses constant-time comparison to prevent timing attacks
  */
 export async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
-  return await secureVerifyPassword(plainPassword, hashedPassword)
+  const result = await secureVerifyPassword(plainPassword, hashedPassword)
+  return typeof result === 'boolean' ? result : result.isValid
 }
 
 /**
@@ -323,7 +325,7 @@ export async function verifyPermission(
     check_user_id: userId,
     resource,
     action
-  })
+  } as any)
   
   if (error) {
     console.error('Permission check failed:', error)
@@ -347,7 +349,7 @@ export async function createSecureSession(
     p_device_info: deviceInfo,
     p_ip_address: deviceInfo.ip_address,
     p_user_agent: deviceInfo.user_agent
-  })
+  } as any)
   
   if (error) {
     throw error

@@ -8,9 +8,10 @@
 import { supabase } from '@/lib/supabase/server';
 import { Database } from '@/lib/supabase/database.types';
 
-type OnboardingAnalytics = Database['public']['Tables']['onboarding_analytics']['Row'];
-type UserOnboardingProgress = Database['public']['Tables']['user_onboarding_progress']['Row'];
-type OnboardingStepCompletion = Database['public']['Tables']['onboarding_step_completions']['Row'];
+// Temporary type workarounds for missing database tables
+type OnboardingAnalytics = any;
+type UserOnboardingProgress = any;
+type OnboardingStepCompletion = any;
 
 export interface OnboardingMetrics {
   totalUsers: number;
@@ -124,7 +125,7 @@ export class OnboardingAnalyticsService {
       if (progressError) throw progressError;
 
       // Get step completions for detailed analysis
-      const progressIds = progressRecords?.map(p => p.id) || [];
+      const progressIds = progressRecords?.map((p: any) => p.id) || [];
       
       const { data: stepCompletions, error: stepsError } = await supabase
         .from('onboarding_step_completions')
@@ -152,7 +153,7 @@ export class OnboardingAnalyticsService {
 
       // Calculate time percentiles
       const timeToComplete = this.calculateTimePercentiles(
-        progressRecords?.filter(p => p.status === 'completed') || []
+        progressRecords?.filter((p: any) => p.status === 'completed') || []
       );
 
       return {
@@ -356,29 +357,29 @@ export class OnboardingAnalyticsService {
         return null;
       }
 
-      const totalSessions = progressRecords.reduce((sum, p) => sum + (p.sessions_count || 0), 0);
-      const totalTimeSpent = progressRecords.reduce((sum, p) => sum + (p.total_time_spent_minutes || 0), 0);
+      const totalSessions = progressRecords.reduce((sum: number, p: any) => sum + (p.sessions_count || 0), 0);
+      const totalTimeSpent = progressRecords.reduce((sum: number, p: any) => sum + (p.total_time_spent_minutes || 0), 0);
       
       const averageSessionDuration = totalSessions > 0 ? totalTimeSpent / totalSessions : 0;
       
       const totalFlows = progressRecords.length;
-      const completedFlows = progressRecords.filter(p => p.status === 'completed').length;
+      const completedFlows = progressRecords.filter((p: any) => p.status === 'completed').length;
       const completionRate = totalFlows > 0 ? (completedFlows / totalFlows) * 100 : 0;
 
       const stepsCompleted = progressRecords.reduce(
-        (sum, p) => sum + (p.completed_steps?.length || 0), 0
+        (sum: number, p: any) => sum + (p.completed_steps?.length || 0), 0
       );
       
       const stepsSkipped = progressRecords.reduce(
-        (sum, p) => sum + (p.skipped_steps?.length || 0), 0
+        (sum: number, p: any) => sum + (p.skipped_steps?.length || 0), 0
       );
 
       const latestActivity = progressRecords
-        .map(p => new Date(p.last_activity_at))
-        .sort((a, b) => b.getTime() - a.getTime())[0];
+        .map((p: any) => new Date(p.last_activity_at))
+        .sort((a: any, b: any) => b.getTime() - a.getTime())[0];
 
       const engagementScore = progressRecords.length > 0
-        ? progressRecords.reduce((sum, p) => sum + (p.engagement_score || 0), 0) / progressRecords.length
+        ? progressRecords.reduce((sum: number, p: any) => sum + (p.engagement_score || 0), 0) / progressRecords.length
         : 0;
 
       // Calculate risk of abandonment
@@ -482,7 +483,7 @@ export class OnboardingAnalyticsService {
       if (error) throw error;
 
       const riskUsers = await Promise.all(
-        (progressRecords || []).map(async (record) => {
+        (progressRecords || []).map(async (record: any) => {
           const engagement = await this.getUserEngagementData(record.user_id);
           if (!engagement) return null;
 
@@ -515,7 +516,7 @@ export class OnboardingAnalyticsService {
           engagementTrend,
         },
         recommendations,
-        riskUsers: riskUsers.filter(u => u !== null) as any[],
+        riskUsers: riskUsers.filter((u: any) => u !== null) as any[],
       };
 
     } catch (error) {
@@ -545,7 +546,13 @@ export class OnboardingAnalyticsService {
     description: string;
     impact: string;
   }> {
-    const recommendations = [];
+    const recommendations: Array<{
+      type: 'optimization' | 'content' | 'ux' | 'technical';
+      priority: 'high' | 'medium' | 'low';
+      title: string;
+      description: string;
+      impact: string;
+    }> = [];
 
     // Check completion rate
     if (analytics.metrics.completionRate < 60) {
@@ -604,7 +611,7 @@ export class OnboardingAnalyticsService {
     record: UserOnboardingProgress,
     engagement: UserEngagementData
   ): string[] {
-    const reasons = [];
+    const reasons: string[] = [];
 
     if (engagement.riskOfAbandonment > 0.7) {
       reasons.push('High abandonment risk score');
@@ -633,7 +640,7 @@ export class OnboardingAnalyticsService {
    * Suggest actions for at-risk users
    */
   private suggestActions(reasons: string[]): string[] {
-    const actions = [];
+    const actions: string[] = [];
 
     if (reasons.includes('No activity for over a week')) {
       actions.push('Send re-engagement email');

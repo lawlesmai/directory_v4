@@ -155,9 +155,9 @@ export const getServerUser = cache(async (): Promise<ServerAuthUser | null> => {
     ])
     
     // Process roles and permissions
-    const roles = rolesData.data?.map(r => r.role?.name).filter(Boolean) || []
-    const permissions = rolesData.data?.flatMap(r => 
-      r.role?.permissions?.map(p => `${p.permission?.resource}:${p.permission?.action}`) || []
+    const roles = rolesData.data?.map((r: any) => r.role?.name).filter(Boolean) || []
+    const permissions = rolesData.data?.flatMap((r: any) => 
+      r.role?.permissions?.map((p: any) => `${p.permission?.resource}:${p.permission?.action}`) || []
     ).filter(Boolean) || []
     
     // Build enhanced user object
@@ -180,7 +180,7 @@ export const getServerUser = cache(async (): Promise<ServerAuthUser | null> => {
         valid_until: businessData.data[0].subscription_valid_until,
         features: businessData.data[0].premium_features
       } : { tier: 'free' },
-      owned_businesses: businessData.data?.map(b => b.id) || [],
+      owned_businesses: businessData.data?.map((b: any) => b.id) || [],
       session_info: sessionData.data ? {
         device_fingerprint: sessionData.data.device_fingerprint,
         last_activity: sessionData.data.last_activity,
@@ -282,7 +282,7 @@ export async function hasRole(roleName: string): Promise<PermissionCheck> {
   
   return {
     hasPermission: user?.roles.includes(roleName) || false,
-    user,
+    user: user || undefined,
     requiredRole: roleName
   }
 }
@@ -299,7 +299,7 @@ export async function hasPermission(
   
   return {
     hasPermission: user?.permissions.includes(permissionKey) || false,
-    user,
+    user: user || undefined,
     requiredPermission: permissionKey
   }
 }

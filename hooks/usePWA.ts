@@ -182,8 +182,7 @@ export const usePWA = (options: UsePWAOptions = {}) => {
         return {
           quota: estimate.quota || 0,
           usage: estimate.usage || 0,
-          available: (estimate.quota || 0) - (estimate.usage || 0),
-          usageDetails: estimate.usageDetails || {}
+          available: (estimate.quota || 0) - (estimate.usage || 0)
         };
       } catch (error) {
         console.error('PWA: Failed to get storage estimate:', error);
@@ -217,7 +216,7 @@ export const usePWA = (options: UsePWAOptions = {}) => {
   const backgroundSync = useCallback(async (tag: string) => {
     if (registration && 'sync' in window.ServiceWorkerRegistration.prototype) {
       try {
-        await registration.sync.register(tag);
+        await (registration as any).sync.register(tag);
         return true;
       } catch (error) {
         console.error('PWA: Background sync registration failed:', error);

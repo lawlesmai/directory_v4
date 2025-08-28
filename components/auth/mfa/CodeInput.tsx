@@ -159,7 +159,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({
             className="relative"
           >
             <input
-              ref={el => inputRefs.current[index] = el}
+              ref={el => { inputRefs.current[index] = el; }}
               type={masked ? 'password' : 'text'}
               inputMode="numeric"
               pattern="[0-9]*"

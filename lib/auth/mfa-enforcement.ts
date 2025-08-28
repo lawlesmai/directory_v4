@@ -193,7 +193,7 @@ export class MFAEnforcementService {
           methods: [],
           reason: `Bypass applied: ${bypassCheck.reason}`,
           bypassAvailable: true,
-          skipReasons: [bypassCheck.reason]
+          skipReasons: [bypassCheck.reason || 'Unknown bypass reason']
         };
       }
       
@@ -257,7 +257,7 @@ export class MFAEnforcementService {
             enforce: false,
             policy: 'role_based_grace',
             requirements: { 
-              methods: roleConfig.methods,
+              methods: [...roleConfig.methods],
               gracePeriod: gracePeriodExpires
             },
             metadata: {
@@ -273,7 +273,7 @@ export class MFAEnforcementService {
       enforce: true,
       policy: 'role_based',
       requirements: {
-        methods: roleConfig.methods,
+        methods: [...roleConfig.methods],
         gracePeriod: gracePeriodExpires
       },
       metadata: {

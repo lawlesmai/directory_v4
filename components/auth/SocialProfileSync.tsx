@@ -135,8 +135,12 @@ export const SocialProfileSync: React.FC<SocialProfileSyncProps> = ({
       previewData.phone = socialProfile.phone;
     }
 
-    if (syncSettings.syncLocation && socialProfile.location) {
-      previewData.location = socialProfile.location;
+    if (syncSettings.syncLocation && socialProfile.location && socialProfile.location.country) {
+      previewData.location = {
+        city: socialProfile.location.city,
+        state: socialProfile.location.state,
+        country: socialProfile.location.country
+      };
     }
 
     return previewData;
@@ -385,7 +389,7 @@ export const SocialProfileSync: React.FC<SocialProfileSyncProps> = ({
 
       {/* Privacy Controls */}
       {showPrivacyControls && (
-        <GlassMorphism variant="light" className="p-6">
+        <GlassMorphism variant="subtle" className="p-6">
           <h4 className="text-lg font-semibold text-cream mb-4 flex items-center gap-2">
             <Shield className="w-5 h-5 text-teal-primary" />
             Privacy Settings

@@ -7,7 +7,7 @@ import {
   ChevronLeft, ChevronRight, Eye, EyeOff, Shield, Users,
   AlertTriangle, CheckCircle, XCircle, Clock, MapPin,
   Monitor, Smartphone, Globe, User, Crown, Building2,
-  Tool, Zap, Star, Settings, Trash2, Edit3, Plus
+  Wrench, Zap, Star, Settings, Trash2, Edit3, Plus
 } from 'lucide-react';
 import { GlassMorphism } from '../../GlassMorphism';
 import { cn } from '@/lib/utils';
@@ -103,7 +103,7 @@ const riskLevelColors = {
 const roleIcons = {
   customer: User,
   business_owner: Building2,
-  service_provider: Tool,
+  service_provider: Wrench,
   moderator: Shield,
   admin: Crown,
   super_admin: Zap

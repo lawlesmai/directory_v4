@@ -152,9 +152,9 @@ export class PasswordResetManager {
         .rpc('check_account_lockout', {
           p_user_id: targetUser.id,
           p_ip_address: clientIP
-        })
+        } as any)
 
-      if (lockoutData?.[0]?.is_locked) {
+      if ((lockoutData as any)?.[0]?.is_locked) {
         await this.recordSecurityEvent({
           type: 'password_reset_locked_account',
           email: request.email,
@@ -162,8 +162,8 @@ export class PasswordResetManager {
           ip: clientIP,
           userAgent,
           metadata: {
-            lockoutUntil: lockoutData[0].lockout_until,
-            reason: lockoutData[0].reason
+            lockoutUntil: (lockoutData as any)?.[0]?.lockout_until,
+            reason: (lockoutData as any)?.[0]?.reason
           }
         })
 
@@ -569,7 +569,7 @@ export class PasswordResetManager {
     // Store enhanced token data in database
     await this.supabase
       .from('password_reset_tokens')
-      .insert({
+      .insert([{
         id: tokenId,
         user_id: userId,
         token_hash: tokenData.tokenHash,
@@ -582,7 +582,7 @@ export class PasswordResetManager {
         max_attempts: this.config.maxAttempts,
         single_use_enforced: true,
         algorithm: tokenData.metadata.algorithm
-      })
+      }])
     
     return {
       id: tokenId,
@@ -736,7 +736,7 @@ export class PasswordResetManager {
     try {
       const { data, error } = await this.supabase
         .from('account_security_events')
-        .insert({
+        .insert([{
           user_id: event.userId,
           event_type: event.type,
           ip_address: event.ip,
@@ -745,7 +745,7 @@ export class PasswordResetManager {
             ...event.metadata,
             email: event.email
           }
-        })
+        }])
         .select('id')
         .single()
 

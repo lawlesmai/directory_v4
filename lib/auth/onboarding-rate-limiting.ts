@@ -8,8 +8,9 @@
 import { supabase } from '@/lib/supabase/server';
 import { Database } from '@/lib/supabase/database.types';
 
-type OnboardingRateLimit = Database['public']['Tables']['onboarding_rate_limits']['Row'];
-type OnboardingRateLimitInsert = Database['public']['Tables']['onboarding_rate_limits']['Insert'];
+// Temporary type workarounds for missing database tables
+type OnboardingRateLimit = any;
+type OnboardingRateLimitInsert = any;
 
 export interface RateLimitConfig {
   maxAttempts: number;
@@ -297,7 +298,7 @@ export class OnboardingRateLimitService {
     try {
       await supabase
         .from('security_events')
-        .insert({
+        .insert([{
           event_type: 'rate_limit_exceeded',
           severity: escalationLevel > 2 ? 'high' : 'medium',
           description: `Rate limit exceeded for ${record.action}`,
@@ -309,7 +310,7 @@ export class OnboardingRateLimitService {
             escalationLevel,
           },
           action_taken: 'rate_limit_applied',
-        });
+        }]);
     } catch (error) {
       console.error('Error logging security event:', error);
     }
@@ -516,14 +517,14 @@ export class OnboardingRateLimitService {
       if (error) throw error;
 
       const totalLimits = records?.length || 0;
-      const blockedRequests = records?.filter(r => r.is_blocked).length || 0;
+      const blockedRequests = records?.filter((r: any) => r.is_blocked).length || 0;
 
       // Calculate top actions
       const actionCounts: Record<string, number> = {};
       const identifierCounts: Record<string, number> = {};
       const escalationCounts: Record<number, number> = {};
 
-      records?.forEach(record => {
+      records?.forEach((record: any) => {
         actionCounts[record.action] = (actionCounts[record.action] || 0) + 1;
         identifierCounts[record.identifier] = (identifierCounts[record.identifier] || 0) + 1;
         escalationCounts[record.escalation_level] = (escalationCounts[record.escalation_level] || 0) + 1;

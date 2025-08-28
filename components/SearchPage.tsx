@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SearchInterface } from './SearchInterface';
 import { AdvancedFilterBar } from './AdvancedFilterBar';
 import { BusinessCard } from './features/business/BusinessCard';
-import { PerformanceIndicator } from './PerformanceIndicator';
-import { SkeletonLoader } from './SkeletonLoader';
+import PerformanceIndicator from './PerformanceIndicator';
+import SkeletonLoader from './SkeletonLoader';
 import { GlassMorphism } from './GlassMorphism';
 import { BusinessDetailModal } from './modals/BusinessDetailModal';
 import { BusinessDetailBottomSheet } from './modals/MobileBottomSheet';
@@ -51,16 +51,22 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  const mobileRef = React.useRef<HTMLDivElement>(null);
+  
   // Mobile features
   const { 
-    isMobile, 
-    orientation, 
-    handleSwipeGesture,
-    vibrate 
-  } = useMobileFeatures();
+    deviceInfo,
+    triggerHapticFeedback,
+    shareContent
+  } = useMobileFeatures(mobileRef, {
+    config: {
+      enableGestures: true,
+      enableHapticFeedback: true
+    }
+  });
 
   // Performance monitoring
-  const { startTiming, endTiming, getMetrics } = usePerformanceMonitor();
+  const { metrics, trackInteraction } = usePerformanceMonitor();
 
   // Search suggestions
   const { suggestions, isLoading: suggestionsLoading } = useSearchSuggestions(
@@ -81,15 +87,15 @@ export const SearchPage: React.FC<SearchPageProps> = ({
 
   // Handle search execution
   const handleSearch = React.useCallback(async (searchQuery: string, searchFilters: SearchFilters) => {
-    startTiming('search_execution');
+    const startTime = performance.now();
     
     try {
       await executeSearch(searchQuery, searchFilters);
-      vibrate?.(50); // Gentle haptic feedback on mobile
+      triggerHapticFeedback?.('medium'); // Gentle haptic feedback on mobile
     } finally {
-      endTiming('search_execution');
+      trackInteraction(startTime);
     }
-  }, [executeSearch, startTiming, endTiming, vibrate]);
+  }, [executeSearch, trackInteraction, triggerHapticFeedback]);
 
   // Handle filter changes
   const handleFilterChange = React.useCallback((newFilters: SearchFilters) => {
@@ -107,7 +113,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   // Handle business card interactions
   const handleBusinessSelect = React.useCallback((business: Business) => {
     setSelectedBusiness(business);
-    vibrate?.(25); // Light haptic feedback
+    triggerHapticFeedback?.('light'); // Light haptic feedback
     
     // Track interaction analytics if available
     if (typeof window !== 'undefined' && 'gtag' in window) {
@@ -119,7 +125,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
     }
 
     // Open appropriate modal based on device
-    if (isMobile) {
+    if (deviceInfo.isMobile) {
       // Use bottom sheet for mobile
       openModal({
         component: BusinessDetailBottomSheet,
@@ -160,7 +166,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
         urlParam: 'business'
       });
     }
-  }, [vibrate, isMobile, openModal, query]);
+  }, [triggerHapticFeedback, deviceInfo.isMobile, openModal, query]);
 
   // Toggle advanced filters
   const toggleAdvancedFilters = React.useCallback(() => {
@@ -184,12 +190,12 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   // Enhanced suggestions with types
   const enhancedSuggestions: SearchSuggestion[] = React.useMemo(() => {
     return suggestions.map((suggestion, index) => ({
-      id: `suggestion-${index}`,
-      text: suggestion,
-      type: suggestion.includes('near me') ? 'location' : 'business',
-      icon: suggestion.includes('near me') ? '📍' : '🏢',
+      id: suggestion.id || `suggestion-${index}`,
+      text: suggestion.text || String(suggestion),
+      type: (suggestion.text || String(suggestion)).includes('near me') ? 'location' : 'business',
+      icon: (suggestion.text || String(suggestion)).includes('near me') ? '📍' : '🏢',
       data: {
-        nearMe: suggestion.includes('near me'),
+        nearMe: (suggestion.text || String(suggestion)).includes('near me'),
       }
     }));
   }, [suggestions]);
@@ -199,7 +205,11 @@ export const SearchPage: React.FC<SearchPageProps> = ({
     if (isSearching) {
       return (
         <div className="results-loading py-8">
-          <SkeletonLoader count={6} variant="business-card" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }, (_, i) => (
+              <SkeletonLoader.BusinessCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       );
     }
@@ -254,9 +264,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             </h2>
             <p className="text-sm text-gray-600">
               {results.total.toLocaleString()} result{results.total === 1 ? '' : 's'} found
-              {results.performance?.responseTime && (
+              {results.responseTime && (
                 <span className="ml-2">
-                  ({Math.round(results.performance.responseTime)}ms)
+                  ({Math.round(results.responseTime)}ms)
                 </span>
               )}
             </p>
@@ -287,7 +297,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({
                 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
                 : 'space-y-4'
             }`}
-            {...(isMobile ? handleSwipeGesture(handleSwipe) : {})}
           >
             {results.businesses.map((business, index) => (
               <motion.div
@@ -331,7 +340,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
   };
 
   return (
-    <div className={`search-page ${isMobile ? 'mobile-layout' : 'desktop-layout'}`}>
+    <div ref={mobileRef} className={`search-page ${deviceInfo.isMobile ? 'mobile-layout' : 'desktop-layout'}`}>
       {/* Search Interface */}
       <div className="search-section mb-6">
         <SearchInterface
@@ -359,7 +368,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             <AdvancedFilterBar
               filters={filters}
               onFiltersChange={handleFilterChange}
-              layout={isMobile ? 'mobile' : 'horizontal'}
+              layout={deviceInfo.isMobile ? 'mobile' : 'horizontal'}
               showCounts={true}
               enableAnimations={true}
               isLoading={isSearching}
@@ -371,13 +380,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({
       {/* Performance Indicator */}
       <div className="performance-section mb-4">
         <PerformanceIndicator
-          metrics={{
-            responseTime: results?.performance?.responseTime || 0,
-            resultCount: results?.total || 0,
-            cached: results?.performance?.cached || false,
-          }}
-          threshold={500}
-          className="text-right"
+          position="top-right"
+          showDetails={true}
+          minimized={true}
         />
       </div>
 
@@ -387,7 +392,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
       </div>
 
       {/* Mobile-specific elements */}
-      {isMobile && (
+      {deviceInfo.isMobile && (
         <>
           {/* Mobile Filter Toggle Button */}
           <motion.button
@@ -413,7 +418,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
             <div className="mobile-stats fixed bottom-20 left-4 right-4 z-40">
               <GlassMorphism variant="subtle" className="p-2 text-center">
                 <span className="text-sm text-gray-600">
-                  {results.total} results • {Math.round(results.performance?.responseTime || 0)}ms
+                  {results.total} results • {Math.round(results.responseTime || 0)}ms
                 </span>
               </GlassMorphism>
             </div>

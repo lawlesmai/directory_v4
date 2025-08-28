@@ -91,7 +91,7 @@ export const getCachedBusinessesByCategory = cache(async (
   params: Omit<BusinessSearchParams, 'category'> = {}
 ) => {
   try {
-    const result = await businessServerApi.getBusinessesByCategory(categorySlug, params)
+    const result = await businessServerApi.getBusinessesByCategory(categorySlug)
     return {
       success: true,
       data: result,
@@ -116,9 +116,9 @@ export const getBusinessStaticPaths = async (limit: number = 100) => {
       sortOrder: 'desc' 
     })
     
-    const paths = result.businesses.map((business) => ({
+    const paths = result.data?.map((business) => ({
       params: { slug: business.slug }
-    }))
+    })) || []
     
     return paths
   } catch (error) {
@@ -130,9 +130,9 @@ export const getBusinessStaticPaths = async (limit: number = 100) => {
 // Get static paths for category pages (for static generation)
 export const getCategoryStaticPaths = async () => {
   try {
-    const categories = await businessServerApi.getBusinessCategories()
+    const categoriesResponse = await businessServerApi.getBusinessCategories()
     
-    const paths = categories.map((category) => ({
+    const paths = (categoriesResponse.data || []).map((category: any) => ({
       params: { slug: category.slug }
     }))
     

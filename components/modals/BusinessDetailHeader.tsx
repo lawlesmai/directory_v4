@@ -17,7 +17,7 @@ export const BusinessDetailHeader: React.FC<BusinessDetailHeaderProps> = ({
   // Get current status based on business hours
   const getCurrentStatus = (): { status: string; color: string } => {
     const now = new Date()
-    const currentDay = now.toLocaleLowerCase().slice(0, 3) as keyof Business['hours']
+    const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as keyof Business['hours']
     const currentTime = now.toTimeString().slice(0, 5) // HH:MM format
     
     const todayHours = business.hours[currentDay]

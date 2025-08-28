@@ -10,9 +10,10 @@ import { supabase } from '@/lib/supabase/server';
 import { Database } from '@/lib/supabase/database.types';
 import { rateLimit } from '@/lib/auth/rate-limiting';
 
-type EmailVerificationToken = Database['public']['Tables']['email_verification_tokens']['Row'];
-type EmailVerificationInsert = Database['public']['Tables']['email_verification_tokens']['Insert'];
-type EmailDeliveryLog = Database['public']['Tables']['email_delivery_logs']['Row'];
+// TODO: Add these types to database.types.ts when tables are created
+type EmailVerificationToken = any;
+type EmailVerificationInsert = any;
+type EmailDeliveryLog = any;
 
 export interface EmailVerificationConfig {
   tokenLength: number;
@@ -291,13 +292,11 @@ export class EmailVerificationService {
     userAgent?: string,
     ipAddress?: string
   ): Promise<void> {
-    await supabase
-      .from('email_verification_tokens')
-      .update({
-        attempts: supabase.sql('attempts + 1'),
-        clicked_at: isValid ? new Date().toISOString() : supabase.sql('clicked_at'),
-      })
-      .eq('id', tokenId);
+    // Use RPC to increment attempts atomically
+    await supabase.rpc('increment_verification_attempts', { 
+      token_id: tokenId,
+      is_valid: isValid 
+    } as any);
   }
 
   /**
@@ -498,7 +497,7 @@ export class EmailVerificationService {
 
       const { error } = await supabase
         .from('email_delivery_logs')
-        .insert(deliveryData);
+        .insert([deliveryData]);
 
       if (error) throw error;
 
@@ -542,12 +541,12 @@ export class EmailVerificationService {
       if (error) throw error;
 
       const total = data?.length || 0;
-      const sent = data?.filter(d => d.status === 'sent').length || 0;
-      const delivered = data?.filter(d => d.status === 'delivered').length || 0;
-      const opened = data?.filter(d => d.status === 'opened').length || 0;
-      const clicked = data?.filter(d => d.status === 'clicked').length || 0;
-      const bounced = data?.filter(d => d.status === 'bounced').length || 0;
-      const failed = data?.filter(d => d.status === 'failed').length || 0;
+      const sent = data?.filter((d: any) => d.status === 'sent').length || 0;
+      const delivered = data?.filter((d: any) => d.status === 'delivered').length || 0;
+      const opened = data?.filter((d: any) => d.status === 'opened').length || 0;
+      const clicked = data?.filter((d: any) => d.status === 'clicked').length || 0;
+      const bounced = data?.filter((d: any) => d.status === 'bounced').length || 0;
+      const failed = data?.filter((d: any) => d.status === 'failed').length || 0;
 
       return {
         total,

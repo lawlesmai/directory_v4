@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GlassMorphism } from './GlassMorphism';
 import { SearchSuggestions } from './SearchSuggestions';
 import { useDebounce } from '../hooks/useDebounce';
-import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useCommonShortcuts } from '../hooks/useKeyboardShortcuts';
 
 // Enhanced search suggestion type
 export interface SearchSuggestion {
@@ -93,7 +93,7 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
   const debouncedQuery = useDebounce(query, 300);
 
   // Keyboard shortcuts
-  useKeyboardShortcuts({
+  useCommonShortcuts({
     onSearch: () => {
       searchInputRef.current?.focus();
       setShowSuggestions(true);
@@ -518,7 +518,7 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
                           type="checkbox"
                           checked={filters.verification === 'verified_only'}
                           onChange={(e) => {
-                            const verification = e.target.checked ? 'verified_only' : 'any';
+                            const verification = e.target.checked ? 'verified_only' as const : 'any' as const;
                             const newFilters = { ...filters, verification };
                             setFilters(newFilters);
                             onFilterChange(newFilters);
@@ -532,7 +532,7 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
                           type="checkbox"
                           checked={filters.subscription === 'premium_only'}
                           onChange={(e) => {
-                            const subscription = e.target.checked ? 'premium_only' : 'any';
+                            const subscription = e.target.checked ? 'premium_only' as const : 'any' as const;
                             const newFilters = { ...filters, subscription };
                             setFilters(newFilters);
                             onFilterChange(newFilters);

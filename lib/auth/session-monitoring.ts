@@ -156,7 +156,7 @@ export class SessionMonitoringService {
             revoked_at: now.toISOString(),
             revoke_reason: 'expired'
           })
-          .in('id', expiredSessions.map(s => s.id))
+          .in('id', expiredSessions.map((s: any) => s.id))
 
         if (updateError) {
           result.errors.push(`Failed to revoke expired sessions: ${updateError.message}`)
@@ -220,7 +220,7 @@ export class SessionMonitoringService {
             revoked_at: new Date().toISOString(),
             revoke_reason: 'inactive'
           })
-          .in('id', inactiveSessions.map(s => s.id))
+          .in('id', inactiveSessions.map((s: any) => s.id))
 
         if (updateError) {
           result.errors.push(`Failed to revoke inactive sessions: ${updateError.message}`)
@@ -291,7 +291,7 @@ export class SessionMonitoringService {
       if (error || !failedAttempts) return
 
       // Group by IP address
-      const attemptsByIP = failedAttempts.reduce((acc, attempt) => {
+      const attemptsByIP = failedAttempts.reduce((acc: any, attempt: any) => {
         const ip = attempt.ip_address || 'unknown'
         if (!acc[ip]) acc[ip] = []
         acc[ip].push(attempt)
@@ -300,17 +300,18 @@ export class SessionMonitoringService {
 
       // Check for IPs with too many failed attempts
       for (const [ip, attempts] of Object.entries(attemptsByIP)) {
-        if (attempts.length >= MONITORING_CONFIG.SUSPICIOUS_LOGIN_ATTEMPTS) {
+        const attemptList = attempts as any[]
+        if (attemptList.length >= MONITORING_CONFIG.SUSPICIOUS_LOGIN_ATTEMPTS) {
           const alert: SecurityAlert = {
             severity: 'high',
             type: 'multiple_failed_logins',
-            description: `${attempts.length} failed login attempts from IP ${ip} in the last 30 minutes`,
-            affectedUsers: [...new Set(attempts.map(a => a.user_id).filter(Boolean))],
+            description: `${attemptList.length} failed login attempts from IP ${ip} in the last 30 minutes`,
+            affectedUsers: [...new Set(attemptList.map((a: any) => a.user_id).filter(Boolean))],
             details: {
               ip_address: ip,
-              attempt_count: attempts.length,
+              attempt_count: attemptList.length,
               time_window: '30 minutes',
-              affected_users: attempts.length
+              affected_users: attemptList.length
             },
             timestamp: new Date()
           }
@@ -339,11 +340,11 @@ export class SessionMonitoringService {
       const { data: ipSessions, error } = await this.supabase
         .rpc('get_sessions_by_ip', {
           since_timestamp: oneHourAgo.toISOString()
-        })
+        } as any)
 
       if (error || !ipSessions) return
 
-      for (const ipData of ipSessions) {
+      for (const ipData of ipSessions as any[]) {
         if (ipData.session_count > MONITORING_CONFIG.MAX_CONCURRENT_SESSIONS_PER_IP) {
           const alert: SecurityAlert = {
             severity: 'medium',
@@ -385,22 +386,23 @@ export class SessionMonitoringService {
       if (error || !recentSessions) return
 
       // Group by user to detect rapid location changes
-      const sessionsByUser = recentSessions.reduce((acc, session) => {
+      const sessionsByUser = recentSessions.reduce((acc: any, session: any) => {
         if (!acc[session.user_id]) acc[session.user_id] = []
         acc[session.user_id].push(session)
         return acc
       }, {} as Record<string, typeof recentSessions>)
 
       for (const [userId, sessions] of Object.entries(sessionsByUser)) {
-        if (sessions.length < 2) continue
+        const sessionList = sessions as any[]
+        if (sessionList.length < 2) continue
 
         // Sort by timestamp
-        sessions.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        sessionList.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
         // Check for rapid geographic changes
-        for (let i = 1; i < sessions.length; i++) {
-          const prevSession = sessions[i - 1]
-          const currentSession = sessions[i]
+        for (let i = 1; i < sessionList.length; i++) {
+          const prevSession = sessionList[i - 1]
+          const currentSession = sessionList[i]
           
           if (prevSession.location && currentSession.location) {
             const distance = this.calculateDistance(prevSession.location, currentSession.location)
@@ -443,7 +445,7 @@ export class SessionMonitoringService {
   private async detectConcurrentSessionAbusePerUser(result: MonitoringResult): Promise<void> {
     try {
       const { data: userSessions, error } = await this.supabase
-        .rpc('get_concurrent_sessions_by_user')
+        .rpc('get_concurrent_sessions_by_user') as any
 
       if (error || !userSessions) return
 
@@ -494,7 +496,7 @@ export class SessionMonitoringService {
           .eq('is_active', true),
         
         this.supabase
-          .rpc('get_session_analytics')
+          .rpc('get_session_analytics') as any
       ])
 
       const activeSessions = activeSessionsData.data || []
@@ -502,7 +504,7 @@ export class SessionMonitoringService {
 
       return {
         totalActiveSessions: activeSessions.length,
-        uniqueUsers: new Set(activeSessions.map(s => s.user_id)).size,
+        uniqueUsers: new Set(activeSessions.map((s: any) => s.user_id)).size,
         averageSessionDuration: analytics.avg_duration || 0,
         topCountries: this.aggregateByLocation(activeSessions),
         topDevices: this.aggregateByDevice(activeSessions),
@@ -544,13 +546,13 @@ export class SessionMonitoringService {
    */
   private async createSecurityAlert(alert: SecurityAlert): Promise<void> {
     try {
-      await this.supabase.from('security_events').insert({
+      await this.supabase.from('security_events').insert([{
         event_type: alert.type,
         severity: alert.severity,
         user_id: alert.affectedUsers[0] || null,
         description: alert.description,
         details: alert.details
-      })
+      }])
 
       // Send webhook notification if configured
       if (MONITORING_CONFIG.ALERT_WEBHOOK_URL && 
@@ -597,12 +599,12 @@ export class SessionMonitoringService {
    */
   private async logSystemEvent(eventType: string, details: Record<string, any>): Promise<void> {
     try {
-      await this.supabase.from('system_events').insert({
+      await this.supabase.from('system_events').insert([{
         event_type: eventType,
         event_category: 'session_management',
         details,
         created_at: new Date().toISOString()
-      })
+      }])
     } catch (error) {
       console.error('Failed to log system event:', error)
     }
@@ -619,12 +621,12 @@ export class SessionMonitoringService {
     try {
       const expiresAt = new Date(Date.now() + durationMinutes * 60 * 1000)
       
-      await this.supabase.from('blocked_ips').insert({
+      await this.supabase.from('blocked_ips').insert([{
         ip_address: ipAddress,
         reason,
         expires_at: expiresAt.toISOString(),
         created_at: new Date().toISOString()
-      })
+      }])
     } catch (error) {
       console.error('Failed to block IP:', error)
     }
@@ -716,7 +718,7 @@ export class SessionMonitoringService {
 
       if (error || !alerts) return []
 
-      return alerts.map(alert => ({
+      return alerts.map((alert: any) => ({
         severity: alert.severity as SecurityAlert['severity'],
         type: alert.event_type,
         description: alert.description,
@@ -766,9 +768,3 @@ export function getMonitoringStatus(): { running: boolean; uptime?: number } {
   }
 }
 
-// Export types
-export type { 
-  MonitoringResult, 
-  SecurityAlert, 
-  SessionAnalytics 
-}

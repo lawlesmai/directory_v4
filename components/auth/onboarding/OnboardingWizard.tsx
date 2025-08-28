@@ -200,7 +200,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   return (
     <OnboardingContext.Provider value={contextValue}>
       <GlassMorphism
-        variant="heavy"
+        variant="strong"
         className={cn('w-full max-w-2xl mx-auto p-8', className)}
         animated
       >

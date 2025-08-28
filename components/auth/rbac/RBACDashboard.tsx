@@ -6,7 +6,7 @@ import {
   BarChart3, Shield, Users, AlertTriangle, TrendingUp, TrendingDown,
   Activity, Clock, Eye, Download, RefreshCw, Filter, Search,
   CheckCircle, XCircle, AlertCircle, Info, Crown, Building2,
-  Tool, Zap, Star, Award, Target, Gauge, Calendar, MapPin
+  Wrench, Zap, Star, Award, Target, Gauge, Calendar, MapPin
 } from 'lucide-react';
 import { GlassMorphism } from '../../GlassMorphism';
 import { cn } from '@/lib/utils';
@@ -20,7 +20,7 @@ import type {
 const roleIcons = {
   customer: Users,
   business_owner: Building2,
-  service_provider: Tool,
+  service_provider: Wrench,
   moderator: Shield,
   admin: Crown,
   super_admin: Zap
@@ -351,8 +351,8 @@ export const RBACDashboard: React.FC<RBACDashboardProps> = ({
     
     // Calculate trends (mock data for demo)
     const userGrowth = Math.round((activeUsers / totalUsers) * 100);
-    const securityTrend = totalViolations < 10 ? 'up' : totalViolations < 50 ? 'stable' : 'down';
-    const complianceTrend = complianceScore >= 80 ? 'up' : complianceScore >= 60 ? 'stable' : 'down';
+    const securityTrend: 'up' | 'stable' | 'down' = totalViolations < 10 ? 'up' : totalViolations < 50 ? 'stable' : 'down';
+    const complianceTrend: 'up' | 'stable' | 'down' = complianceScore >= 80 ? 'up' : complianceScore >= 60 ? 'stable' : 'down';
 
     return {
       userGrowth,

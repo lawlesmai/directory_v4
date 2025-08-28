@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
         lastLoginAt: profile.last_login_at,
         createdAt: profile.created_at,
         updatedAt: profile.updated_at,
-        roles: profile.user_roles?.filter(ur => ur.is_active).map(ur => ({
+        roles: profile.user_roles?.filter((ur: any) => ur.is_active).map((ur: any) => ({
           id: ur.role_id,
           name: ur.roles?.name,
           displayName: ur.roles?.display_name

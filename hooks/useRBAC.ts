@@ -3,7 +3,7 @@
  * Epic 2 Story 2.8: React hooks for permission checking and role management
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useUser } from '@supabase/auth-helpers-react'
 import { rbacChecker, UserPermission, Role, PermissionContext } from '@/lib/rbac/utils'
 
@@ -101,7 +101,18 @@ export function usePermissions(
       setLoading(true)
       setError(null)
       
-      const results = await rbacChecker.hasPermissions(permissions)
+      const results: Record<string, boolean> = {}
+      
+      // Check each permission individually
+      for (const permission of permissions) {
+        const key = `${permission.resource}:${permission.action}`
+        results[key] = await rbacChecker.hasPermission(
+          permission.resource,
+          permission.action,
+          permission.context
+        )
+      }
+      
       setPermissionResults(results)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Permissions check failed'))
@@ -312,7 +323,7 @@ export function withPermission(
         return fallback as React.ReactElement || null
       }
 
-      return <Component {...(componentProps as P)} />
+      return React.createElement(Component, componentProps as P)
     }
   }
 }

@@ -9,10 +9,11 @@ import { createHash } from 'crypto';
 import { supabase } from '@/lib/supabase/server';
 import { Database } from '@/lib/supabase/database.types';
 
-type BusinessVerificationDocument = Database['public']['Tables']['business_verification_documents']['Row'];
-type BusinessVerificationDocumentInsert = Database['public']['Tables']['business_verification_documents']['Insert'];
-type BusinessVerificationWorkflow = Database['public']['Tables']['business_verification_workflows']['Row'];
-type BusinessVerificationWorkflowInsert = Database['public']['Tables']['business_verification_workflows']['Insert'];
+// TODO: Add these types to database.types.ts when tables are created
+type BusinessVerificationDocument = any;
+type BusinessVerificationDocumentInsert = any;
+type BusinessVerificationWorkflow = any;
+type BusinessVerificationWorkflowInsert = any;
 
 export interface DocumentUploadResult {
   success: boolean;

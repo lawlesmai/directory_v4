@@ -404,7 +404,7 @@ export const IdentityVerification: React.FC<IdentityVerificationProps> = ({
     const isStepCompleted = step.completed;
 
     return (
-      <GlassMorphism variant="light" className="p-6 mb-6">
+      <GlassMorphism variant="subtle" className="p-6 mb-6">
         <div className="text-center">
           <h4 className="text-xl font-semibold text-cream mb-2">{step.title}</h4>
           <p className="text-sage/70 mb-6">{step.description}</p>
@@ -673,7 +673,7 @@ export const IdentityVerification: React.FC<IdentityVerificationProps> = ({
       {renderCurrentStepContent()}
       
       {/* Security Notice */}
-      <GlassMorphism variant="light" className="p-4">
+      <GlassMorphism variant="subtle" className="p-4">
         <div className="flex items-start space-x-3">
           <Shield className="w-5 h-5 text-teal-primary mt-0.5 flex-shrink-0" />
           <div>

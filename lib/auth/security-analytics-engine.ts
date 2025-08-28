@@ -432,7 +432,7 @@ export class SecurityAnalyticsEngine {
       if (!knownDevices) return null
       
       const deviceId = event.deviceFingerprint.id
-      const isKnownDevice = knownDevices.some(d => d.device_id === deviceId)
+      const isKnownDevice = knownDevices.some((d: any) => d.device_id === deviceId)
       
       if (!isKnownDevice && event.deviceFingerprint.riskScore > 0.7) {
         return {
@@ -813,7 +813,7 @@ export class SecurityAnalyticsEngine {
   private async storeSecurityEvent(event: SecurityEventStream): Promise<string> {
     const { data, error } = await this.supabase
       .from('auth_audit_logs')
-      .insert({
+      .insert([{
         event_type: event.type,
         user_id: event.userId,
         ip_address: event.ipAddress,
@@ -829,7 +829,7 @@ export class SecurityAnalyticsEngine {
           }
         },
         created_at: event.timestamp.toISOString()
-      })
+      }])
       .select('id')
       .single()
     

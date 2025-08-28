@@ -230,7 +230,7 @@ export class MFARecoveryService {
       // Store recovery request in database
       const { data: request, error: insertError } = await supabase
         .from('mfa_recovery_requests')
-        .insert({
+        .insert([{
           user_id: userId,
           recovery_method: method,
           verification_token: recoveryRequest.token,
@@ -241,7 +241,7 @@ export class MFARecoveryService {
           request_ip: context.ipAddress,
           request_user_agent: context.userAgent,
           expires_at: recoveryRequest.expiresAt?.toISOString()
-        })
+        }])
         .select('id, expires_at')
         .single();
       
@@ -580,13 +580,13 @@ export class MFARecoveryService {
     // Store temporary token (in production, use JWT or similar)
     await supabase
       .from('user_sessions')
-      .insert({
+      .insert([{
         user_id: userId,
         session_token: token,
         expires_at: expiresAt.toISOString(),
         is_active: true,
         device_type: 'recovery_session'
-      });
+      }]);
     
     return token;
   }
@@ -623,13 +623,13 @@ export class MFARecoveryService {
     // Log security event
     await supabase
       .from('security_events')
-      .insert({
+      .insert([{
         event_type: 'mfa_recovery_completed',
         severity: 'high',
         user_id: userId,
         description: `User completed MFA recovery using ${method}`,
         action_taken: 'temporary_access_granted'
-      });
+      }]);
   }
   
   private static async logRecoveryEvent(params: {
@@ -642,7 +642,7 @@ export class MFARecoveryService {
   }): Promise<void> {
     await supabase
       .from('auth_audit_logs')
-      .insert({
+      .insert([{
         event_type: `mfa_${params.eventType}`,
         event_category: 'mfa_recovery',
         user_id: params.userId,
@@ -652,7 +652,7 @@ export class MFARecoveryService {
           recovery_method: params.method,
           request_id: params.requestId
         }
-      });
+      }]);
   }
 }
 
@@ -696,7 +696,7 @@ export class AdminOverrideService {
       // Create override record
       const { data: override, error: insertError } = await supabase
         .from('mfa_admin_overrides')
-        .insert({
+        .insert([{
           target_user_id: request.targetUserId,
           admin_user_id: adminUserId,
           override_type: request.overrideType,
@@ -705,7 +705,7 @@ export class AdminOverrideService {
           emergency_justification: request.emergencyJustification,
           requires_approval: requiresApproval,
           is_active: !requiresApproval // Only active if no approval needed
-        })
+        }])
         .select('id')
         .single();
       
@@ -855,7 +855,7 @@ export class AdminOverrideService {
       return false;
     }
     
-    const roleNames = adminRoles.map(r => (r.roles as any)?.name).filter(Boolean);
+    const roleNames = adminRoles.map((r: any) => (r.roles as any)?.name).filter(Boolean);
     const requiredRoles = MFA_RECOVERY_CONFIG.adminOverride.approvalRequirements[
       overrideType as keyof typeof MFA_RECOVERY_CONFIG.adminOverride.approvalRequirements
     ] || ['admin'];
@@ -922,7 +922,7 @@ export class AdminOverrideService {
   }): Promise<void> {
     await supabase
       .from('auth_audit_logs')
-      .insert({
+      .insert([{
         event_type: `admin_${params.eventType}`,
         event_category: 'admin_override',
         user_id: params.adminUserId,
@@ -932,7 +932,7 @@ export class AdminOverrideService {
           override_id: params.overrideId,
           override_type: params.overrideType
         }
-      });
+      }]);
   }
 }
 

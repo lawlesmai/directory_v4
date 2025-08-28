@@ -150,7 +150,7 @@ export class GDPRComplianceManager {
       // Create export request record
       const { data: exportRecord, error: createError } = await this.supabase
         .from('gdpr_data_exports')
-        .insert({
+        .insert([{
           user_id: request.userId,
           request_type: request.requestType,
           requested_categories: request.categories,
@@ -160,7 +160,7 @@ export class GDPRComplianceManager {
           status: 'processing',
           processing_started_at: new Date().toISOString(),
           requested_by: request.userId
-        })
+        }])
         .select()
         .single()
 
@@ -326,7 +326,7 @@ export class GDPRComplianceManager {
       // Create deletion request record
       const { data: deletionRecord, error: createError } = await this.supabase
         .from('gdpr_data_deletions')
-        .insert({
+        .insert([{
           user_id: request.userId,
           deletion_type: request.deletionType,
           deletion_scope: request.deletionScope,
@@ -336,7 +336,7 @@ export class GDPRComplianceManager {
           status: 'processing',
           processing_started_at: new Date().toISOString(),
           requested_by: request.userId
-        })
+        }])
         .select()
         .single()
 
@@ -538,7 +538,7 @@ export class GDPRComplianceManager {
         // Create new consent record
         const { data: newConsent, error: insertError } = await this.supabase
           .from('consent_records')
-          .insert({
+          .insert([{
             user_id: userId,
             consent_type: consentData.consentType,
             consent_category: consentData.consentCategory,
@@ -551,7 +551,7 @@ export class GDPRComplianceManager {
             ip_address: consentData.ipAddress,
             user_agent: consentData.userAgent,
             metadata: consentData.metadata
-          })
+          }])
           .select()
           .single()
 
@@ -639,9 +639,9 @@ export class GDPRComplianceManager {
         .select('*')
         .eq('user_id', userId)
 
-      const activeConsents = consents?.filter(c => c.consent_given && !c.withdrawn_date).length || 0
-      const withdrawnConsents = consents?.filter(c => c.withdrawn_date).length || 0
-      const expiredConsents = consents?.filter(c => 
+      const activeConsents = consents?.filter((c: any) => c.consent_given && !c.withdrawn_date).length || 0
+      const withdrawnConsents = consents?.filter((c: any) => c.withdrawn_date).length || 0
+      const expiredConsents = consents?.filter((c: any) => 
         c.expires_at && new Date(c.expires_at) < new Date()
       ).length || 0
 
@@ -651,9 +651,9 @@ export class GDPRComplianceManager {
         .select('*')
         .eq('user_id', userId)
 
-      const activeActivities = activities?.filter(a => a.status === 'active').length || 0
-      const completedActivities = activities?.filter(a => a.status === 'completed').length || 0
-      const dataCategories = [...new Set(activities?.flatMap(a => a.data_categories) || [])]
+      const activeActivities = activities?.filter((a: any) => a.status === 'active').length || 0
+      const completedActivities = activities?.filter((a: any) => a.status === 'completed').length || 0
+      const dataCategories = [...new Set(activities?.flatMap((a: any) => a.data_categories) || [])]
 
       // Calculate compliance score
       let complianceScore = 0
@@ -720,7 +720,7 @@ export class GDPRComplianceManager {
         dataProcessing: {
           activeActivities,
           completedActivities,
-          dataCategories,
+          dataCategories: dataCategories as string[],
           retentionCompliance: true // Assumed based on our retention policies
         },
         securityMeasures,
@@ -801,7 +801,7 @@ export class GDPRComplianceManager {
         .limit(100)
         .order('created_at', { ascending: false })
 
-      activityData.sessions = sessions?.map(session => ({
+      activityData.sessions = sessions?.map((session: any) => ({
         device_type: session.device_type,
         browser: session.browser,
         location: {
@@ -976,11 +976,11 @@ export class GDPRComplianceManager {
         user_uuid: userId,
         deletion_type: 'account',
         keep_anonymized: keepAnonymized
-      })
+      } as any)
 
     return {
-      deleted: result?.files_deleted + result?.preferences_deleted + (keepAnonymized ? 0 : 1),
-      anonymized: keepAnonymized ? result?.profiles_anonymized : 0,
+      deleted: (result as any)?.files_deleted + (result as any)?.preferences_deleted + (keepAnonymized ? 0 : 1),
+      anonymized: keepAnonymized ? (result as any)?.profiles_anonymized : 0,
       retained: 0,
       retentionReasons: []
     }
@@ -1030,7 +1030,7 @@ export class GDPRComplianceManager {
     // Delete session activities
     const { count: sessionActivitiesCount } = await this.supabase
       .from('session_activities')
-      .delete({ count: 'exact' })
+      .delete()
       .in('session_id', [
         // Subquery would go here in real implementation
       ])
@@ -1040,7 +1040,7 @@ export class GDPRComplianceManager {
     // Delete user sessions
     const { count: sessionsCount } = await this.supabase
       .from('user_sessions')
-      .delete({ count: 'exact' })
+      .delete()
       .eq('user_id', userId)
 
     deleted += sessionsCount || 0
@@ -1125,7 +1125,7 @@ export class GDPRComplianceManager {
     processingTimeMs?: number
   }): Promise<void> {
     try {
-      await this.supabase.from('gdpr_compliance_logs').insert({
+      await this.supabase.from('gdpr_compliance_logs').insert([{
         user_id: activity.userId,
         activity_type: activity.activityType,
         activity_description: activity.description,
@@ -1136,7 +1136,7 @@ export class GDPRComplianceManager {
         success: activity.success,
         processing_time_ms: activity.processingTimeMs,
         performed_by: activity.performedBy
-      })
+      }])
     } catch (error) {
       console.error('Failed to log GDPR activity:', error)
       // Non-critical error, continue execution

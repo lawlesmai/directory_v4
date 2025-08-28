@@ -274,7 +274,7 @@ export const useMobileGestures = (
       longPressTimer: setTimeout(() => {
         touchStateRef.current.isLongPress = true;
         setCurrentGesture('longpress');
-        triggerHapticFeedback('longPress');
+        triggerHapticFeedback('medium');
         onLongPress?.(coordinates, element);
         if (debugMode) console.log('Long press detected', coordinates);
       }, longPressDelay)
@@ -308,7 +308,7 @@ export const useMobileGestures = (
       if (pullGesture.isTriggered && !touchStateRef.current.isPullToRefreshActive) {
         touchStateRef.current.isPullToRefreshActive = true;
         setCurrentGesture('pullToRefresh');
-        triggerHapticFeedback('pullToRefresh');
+        triggerHapticFeedback('light');
         if (debugMode) console.log('Pull to refresh triggered');
       }
       
@@ -349,7 +349,7 @@ export const useMobileGestures = (
           center: { x: centerX, y: centerY }
         };
         
-        triggerHapticFeedback('pinchZoom');
+        triggerHapticFeedback('light');
         onPinch?.(pinchGesture, elementRef.current);
         if (debugMode) console.log('Pinch move', scale);
       }
@@ -412,7 +412,7 @@ export const useMobileGestures = (
           velocity
         };
         
-        triggerHapticFeedback('edgeSwipe');
+        triggerHapticFeedback('medium');
         onEdgeSwipe?.(edgeSwipeGesture, element);
         if (debugMode) console.log('Edge swipe completed', edgeSwipeGesture);
         

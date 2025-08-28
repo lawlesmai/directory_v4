@@ -142,7 +142,7 @@ export class AccountLinkingManager {
           is_primary: false, // Never make linked accounts primary by default
           is_verified: !providerConfig.require_email_verification,
           connected_at: new Date().toISOString()
-        })
+        } as any)
         .select('id')
         .single()
 
@@ -229,7 +229,7 @@ export class AccountLinkingManager {
       let hasPasswordAuth = false
       if (userAuth?.email) {
         const { data: authUser } = await this.supabase.auth.admin.getUserById(userId)
-        hasPasswordAuth = !!authUser.user?.encrypted_password
+        hasPasswordAuth = !!(authUser.user as any)?.encrypted_password
       }
 
       if (!hasPasswordAuth && (!otherConnections || otherConnections.length === 0)) {
@@ -331,7 +331,7 @@ export class AccountLinkingManager {
         return []
       }
 
-      return (connections || []).map(conn => ({
+      return (connections || []).map((conn: any) => ({
         id: conn.id,
         provider: conn.oauth_providers.provider_name as OAuthProvider,
         provider_user_id: conn.provider_user_id,
@@ -607,7 +607,7 @@ export async function hasMultipleAuthMethods(userId: string): Promise<boolean> {
 
   // Check if has password auth
   const { data: authUser } = await supabase.auth.admin.getUserById(userId)
-  const hasPassword = !!authUser.user?.encrypted_password
+  const hasPassword = !!(authUser.user as any)?.encrypted_password
 
   return (oauthCount + (hasPassword ? 1 : 0)) > 1
 }
@@ -644,7 +644,7 @@ export async function getPrimaryAuthMethod(userId: string): Promise<{
 
   // Check if has email/password auth
   const { data: authUser } = await supabase.auth.admin.getUserById(userId)
-  if (authUser.user?.encrypted_password) {
+  if ((authUser.user as any)?.encrypted_password) {
     return { type: 'email' }
   }
 

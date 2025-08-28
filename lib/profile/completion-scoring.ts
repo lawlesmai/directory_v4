@@ -388,18 +388,18 @@ export class ProfileCompletionManager {
       if (error) throw error
 
       // Get badge counts
-      const userIds = leaderboard?.map(entry => entry.user_id) || []
+      const userIds = leaderboard?.map((entry: any) => entry.user_id) || []
       const { data: badgeCounts } = await this.supabase
         .from('user_badges')
         .select('user_id')
         .in('user_id', userIds)
         
-      const badgeCountMap = badgeCounts?.reduce((acc, badge) => {
+      const badgeCountMap = badgeCounts?.reduce((acc: any, badge: any) => {
         acc[badge.user_id] = (acc[badge.user_id] || 0) + 1
         return acc
       }, {} as Record<string, number>) || {}
 
-      return leaderboard?.map((entry, index) => ({
+      return leaderboard?.map((entry: any, index: number) => ({
         userId: entry.user_id,
         displayName: entry.profiles.display_name || 'Anonymous User',
         avatarUrl: entry.profiles.avatar_url,
@@ -426,7 +426,7 @@ export class ProfileCompletionManager {
 
     for (const [sectionId, sectionConfig] of Object.entries(config)) {
       // Check if section applies to user
-      if (sectionConfig.conditions && !this.checkSectionConditions(profile, sectionConfig.conditions)) {
+      if ((sectionConfig as any).conditions && !this.checkSectionConditions(profile, (sectionConfig as any).conditions)) {
         continue
       }
 
@@ -597,7 +597,7 @@ export class ProfileCompletionManager {
       .select('milestone_id')
       .eq('user_id', userId)
 
-    const achievedIds = achievedMilestones?.map(m => m.milestone_id) || []
+    const achievedIds = achievedMilestones?.map((m: any) => m.milestone_id) || []
 
     // Get next available milestone
     const { data: nextMilestone } = await this.supabase
@@ -715,7 +715,7 @@ export class ProfileCompletionManager {
       .eq('user_id', userId)
       .order('earned_at', { ascending: false })
 
-    return userBadges?.map(ub => ({
+    return userBadges?.map((ub: any) => ({
       id: ub.badges.id,
       name: ub.badges.name,
       description: ub.badges.description,
@@ -736,7 +736,7 @@ export class ProfileCompletionManager {
       .eq('user_id', userId)
       .order('last_activity_date', { ascending: false })
 
-    return streaks?.map(streak => ({
+    return streaks?.map((streak: any) => ({
       id: streak.id,
       type: streak.streak_type,
       currentStreak: streak.current_streak,
@@ -764,12 +764,12 @@ export class ProfileCompletionManager {
     // Record completion history
     await this.supabase
       .from('profile_completion_history')
-      .insert({
+      .insert([{
         user_id: userId,
         completion_score: totalScore,
         completion_level: level,
         recorded_at: new Date().toISOString()
-      })
+      }])
   }
 
   private async checkForNewBadges(

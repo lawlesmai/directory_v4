@@ -10,6 +10,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
+  CheckCircle,
   AlertCircle,
   Lock,
   X

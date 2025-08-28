@@ -107,7 +107,7 @@ export default function SocialAuthDemo() {
   const socialAuthModal = useSocialAuthModal();
   const { error, handleError, clearError } = useOAuthErrorHandler();
 
-  const handleSocialLogin = (user: any, provider: AuthProvider) => {
+  const handleSocialLogin = (user: any, provider?: AuthProvider) => {
     console.log(`Successfully logged in with ${provider}:`, user);
     // Handle successful login
   };
@@ -344,7 +344,7 @@ export default function SocialAuthDemo() {
                         message: 'Access was denied by the user',
                         code: 'access_denied',
                         provider: 'google'
-                      })}
+                      } as any)}
                       variant="destructive"
                       className="w-full"
                     >
@@ -355,7 +355,7 @@ export default function SocialAuthDemo() {
                         message: 'Authentication popup was blocked',
                         code: 'popup_blocked',
                         provider: 'apple'
-                      })}
+                      } as any)}
                       variant="destructive"
                       className="w-full"
                     >
@@ -366,7 +366,7 @@ export default function SocialAuthDemo() {
                         message: 'Network error occurred',
                         code: 'network_error',
                         provider: 'facebook'
-                      })}
+                      } as any)}
                       variant="destructive"
                       className="w-full"
                     >
@@ -391,8 +391,8 @@ export default function SocialAuthDemo() {
                         <span className="font-semibold text-red-error">{error.code}</span>
                       </div>
                       <p className="text-red-error mb-2">{error.message}</p>
-                      {error.provider && (
-                        <p className="text-sage/70 text-sm">Provider: {error.provider}</p>
+                      {(error as any).provider && (
+                        <p className="text-sage/70 text-sm">Provider: {(error as any).provider}</p>
                       )}
                     </div>
                   </GlassMorphism>

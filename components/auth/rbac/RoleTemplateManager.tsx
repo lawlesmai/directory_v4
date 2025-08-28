@@ -3,9 +3,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Template, Plus, Search, Filter, Star, Copy, Edit3, Trash2,
+  FileText, Plus, Search, Filter, Star, Copy, Edit3, Trash2,
   Download, Upload, Save, X, Check, Eye, EyeOff, Users,
-  Settings, Building2, Crown, Shield, Zap, Tool, User,
+  Settings, Building2, Crown, Shield, Zap, Wrench, User,
   Tag, Calendar, TrendingUp, Award, BookOpen, Sparkles
 } from 'lucide-react';
 import { GlassMorphism } from '../../GlassMorphism';
@@ -38,7 +38,7 @@ const categoryColors = {
 const roleIcons = {
   customer: User,
   business_owner: Building2,
-  service_provider: Tool,
+  service_provider: Wrench,
   moderator: Shield,
   admin: Crown,
   super_admin: Zap
@@ -114,7 +114,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-cream truncate">{template.name}</h3>
               {template.isPublic && (
-                <Star className="w-4 h-4 text-gold-primary" title="Public template" />
+                <Star className="w-4 h-4 text-gold-primary" aria-label="Public template" />
               )}
             </div>
             <p className="text-sm text-sage/70 line-clamp-2 mt-1">
@@ -543,7 +543,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
               </label>
               <select
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value as 'custom' | 'business' | 'system' })}
                 disabled={loading}
                 className="w-full px-3 py-2 bg-navy-dark/50 border border-sage/30 rounded-lg text-cream
                            focus:outline-none focus:ring-2 focus:ring-teal-primary/50"
@@ -560,7 +560,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
               </label>
               <select
                 value={formData.targetRole}
-                onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, targetRole: e.target.value as UserRole })}
                 disabled={loading}
                 className="w-full px-3 py-2 bg-navy-dark/50 border border-sage/30 rounded-lg text-cream
                            focus:outline-none focus:ring-2 focus:ring-teal-primary/50"
@@ -880,7 +880,8 @@ export const RoleTemplateManager: React.FC<RoleTemplateManagerProps> = ({
       permissions: template.permissions,
       contexts: template.contexts,
       isPublic: false,
-      metadata: { ...template.metadata }
+      metadata: { ...template.metadata },
+      createdBy: 'current_user' // TODO: Get actual current user ID
     };
 
     try {
@@ -906,7 +907,7 @@ export const RoleTemplateManager: React.FC<RoleTemplateManagerProps> = ({
     }
   };
 
-  const currentEditingTemplate = editingTemplate ? templates.find(t => t.id === editingTemplate) : null;
+  const currentEditingTemplate = editingTemplate ? templates.find(t => t.id === editingTemplate) || null : null;
 
   const stats = useMemo(() => {
     return {
@@ -935,7 +936,7 @@ export const RoleTemplateManager: React.FC<RoleTemplateManagerProps> = ({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-teal-primary/20 to-sage/20 rounded-full">
-            <Template className="w-6 h-6 text-sage" />
+            <FileText className="w-6 h-6 text-sage" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-cream">Role Templates</h2>
@@ -1021,7 +1022,7 @@ export const RoleTemplateManager: React.FC<RoleTemplateManagerProps> = ({
       <div className="min-h-[400px]">
         {filteredTemplates.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <Template className="w-12 h-12 text-sage/30 mb-4" />
+            <FileText className="w-12 h-12 text-sage/30 mb-4" />
             <p className="text-sage/70 text-center">
               {searchQuery || categoryFilter !== 'all' || targetRoleFilter !== 'all'
                 ? 'No templates match your filters'

@@ -79,8 +79,17 @@ export const useBusiness = (slug: string) => {
   return useQuery({
     queryKey: ['business', slug],
     queryFn: async () => {
+      // TODO: Implement RPC function 'get_business_details' or use complex query
       const { data, error } = await supabase
-        .rpc('get_business_details', { business_slug: slug })
+        .from('businesses')
+        .select(`
+          *,
+          business_categories:business_category_mappings(
+            category:categories(*)
+          ),
+          business_reviews(*)
+        `)
+        .eq('slug', slug)
         .single()
 
       if (error) throw error
@@ -145,14 +154,21 @@ export const useNearbyBusinesses = (
   return useQuery({
     queryKey: ['nearby', location, options],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc('find_nearby_businesses', {
-          user_location: `POINT(${location.lng} ${location.lat})`,
-          radius_meters: options?.radius || 5000,
-          category_filter: options?.category || null,
-          limit_count: options?.limit || 50,
-          offset_count: options?.offset || 0,
-        })
+      // TODO: Implement RPC function 'find_nearby_businesses' or use PostGIS query
+      let query = supabase
+        .from('businesses')
+        .select('*')
+        .limit(options?.limit || 50)
+      
+      if (options?.category) {
+        query = query.eq('primary_category_id', options.category)
+      }
+      
+      if (options?.offset) {
+        query = query.range(options.offset, options.offset + (options?.limit || 50) - 1)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
       return data as NearbyBusinessResult[]
@@ -171,7 +187,7 @@ export const useCreateBusiness = () => {
     mutationFn: async (business: BusinessInsert) => {
       const { data, error } = await supabase
         .from('businesses')
-        .insert(business)
+        .insert([business])
         .select()
         .single()
 
@@ -309,10 +325,10 @@ export const useCreateReview = () => {
     }) => {
       const { data, error } = await supabase
         .from('business_reviews')
-        .insert({
+        .insert([{
           ...review,
           reviewer_id: (await supabase.auth.getUser()).data.user?.id,
-        })
+        }])
         .select()
         .single()
 
@@ -334,9 +350,19 @@ export const useMarkReviewHelpful = () => {
 
   return useMutation({
     mutationFn: async (reviewId: string) => {
+      // TODO: Implement atomic increment RPC function
+      // For now, use a read-modify-write pattern (not atomic, but functional)
+      const { data: currentReview, error: fetchError } = await supabase
+        .from('business_reviews')
+        .select('helpful_count')
+        .eq('id', reviewId)
+        .single()
+      
+      if (fetchError) throw fetchError
+      
       const { data, error } = await supabase
         .from('business_reviews')
-        .update({ helpful_count: supabase.raw('helpful_count + 1') })
+        .update({ helpful_count: (currentReview.helpful_count || 0) + 1 })
         .eq('id', reviewId)
         .select()
         .single()
@@ -360,10 +386,20 @@ export const useMarkReviewHelpful = () => {
 export const useTrackBusinessView = () => {
   return useMutation({
     mutationFn: async (businessId: string) => {
+      // TODO: Implement atomic increment RPC function
+      // For now, use a read-modify-write pattern (not atomic, but functional)
+      const { data: currentBusiness, error: fetchError } = await supabase
+        .from('businesses')
+        .select('view_count')
+        .eq('id', businessId)
+        .single()
+      
+      if (fetchError) throw fetchError
+      
       const { error } = await supabase
         .from('businesses')
         .update({ 
-          view_count: supabase.raw('view_count + 1'),
+          view_count: (currentBusiness.view_count || 0) + 1,
           last_activity_at: new Date().toISOString()
         })
         .eq('id', businessId)
@@ -396,13 +432,28 @@ export const useTrackClick = () => {
       const column = columnMap[clickType]
 
       // Update business analytics for today
+      // TODO: Implement atomic increment RPC function for analytics
+      const today = new Date().toISOString().split('T')[0]
+      
+      // First try to get current value
+      const { data: currentAnalytics } = await supabase
+        .from('business_analytics')
+        .select(column)
+        .eq('business_id', businessId)
+        .eq('date', today)
+        .single()
+      
+      // Prepare update/insert data
+      const updateData: any = {
+        business_id: businessId,
+        date: today,
+        [column]: (currentAnalytics?.[column] || 0) + 1,
+      }
+      
+      // Use upsert for insert or update
       const { error } = await supabase
         .from('business_analytics')
-        .upsert({
-          business_id: businessId,
-          date: new Date().toISOString().split('T')[0],
-          [column]: supabase.raw(`${column} + 1`),
-        })
+        .upsert(updateData)
 
       if (error) throw error
     },

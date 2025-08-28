@@ -112,8 +112,8 @@ export class SecurityMonitor {
         ...event,
         occurredAt: new Date().toISOString(),
         detectedAt: new Date().toISOString(),
-        ipAddress: event.ipAddress || await this.getClientIP(),
-        userAgent: event.userAgent || await this.getClientUserAgent(),
+        ipAddress: event.ipAddress || (await this.getClientIP()) || undefined,
+        userAgent: event.userAgent || (await this.getClientUserAgent()) || undefined,
         requestId: this.generateRequestId()
       }
 
@@ -157,8 +157,8 @@ export class SecurityMonitor {
       const enhancedEntry: AuditLogEntry = {
         ...entry,
         createdAt: new Date().toISOString(),
-        ipAddress: entry.ipAddress || await this.getClientIP(),
-        userAgent: entry.userAgent || await this.getClientUserAgent()
+        ipAddress: entry.ipAddress || (await this.getClientIP()) || undefined,
+        userAgent: entry.userAgent || (await this.getClientUserAgent()) || undefined
       }
 
       const { error } = await this.supabase
@@ -296,7 +296,7 @@ export class SecurityMonitor {
     validationResult: any
   ): Promise<void> {
     try {
-      const securityChecks = []
+      const securityChecks: string[] = []
 
       // Check for suspicious file types
       const dangerousTypes = [
@@ -367,7 +367,7 @@ export class SecurityMonitor {
     newValue: any
   ): Promise<void> {
     try {
-      const securityImplications = []
+      const securityImplications: string[] = []
 
       // Monitor privacy setting changes
       if (category === 'privacy') {
@@ -439,29 +439,29 @@ export class SecurityMonitor {
 
       // Calculate metrics
       const totalEvents = events.length
-      const criticalEvents = events.filter(e => e.severity === 'critical').length
-      const highSeverityEvents = events.filter(e => e.severity === 'high').length
-      const mediumSeverityEvents = events.filter(e => e.severity === 'medium').length
-      const lowSeverityEvents = events.filter(e => e.severity === 'low').length
-      const resolvedEvents = events.filter(e => e.resolved).length
+      const criticalEvents = events.filter((e: SecurityEvent) => e.severity === 'critical').length
+      const highSeverityEvents = events.filter((e: SecurityEvent) => e.severity === 'high').length
+      const mediumSeverityEvents = events.filter((e: SecurityEvent) => e.severity === 'medium').length
+      const lowSeverityEvents = events.filter((e: SecurityEvent) => e.severity === 'low').length
+      const resolvedEvents = events.filter((e: SecurityEvent) => e.resolved).length
       const unresolvedEvents = totalEvents - resolvedEvents
 
       // Calculate average resolution time
-      const resolvedEventsWithTime = events.filter(e => e.resolved && e.resolved_at)
+      const resolvedEventsWithTime = events.filter((e: SecurityEvent) => e.resolved && e.resolvedAt)
       const averageResolutionTime = resolvedEventsWithTime.length > 0
-        ? resolvedEventsWithTime.reduce((sum, event) => {
-            const resolutionTime = new Date(event.resolved_at!).getTime() - new Date(event.occurred_at).getTime()
+        ? resolvedEventsWithTime.reduce((sum: number, event: SecurityEvent) => {
+            const resolutionTime = new Date(event.resolvedAt!).getTime() - new Date(event.occurredAt).getTime()
             return sum + resolutionTime
           }, 0) / resolvedEventsWithTime.length / (1000 * 60) // Convert to minutes
         : 0
 
       // Top threat types
-      const threatCounts = events.reduce((acc, event) => {
-        acc[event.event_type] = (acc[event.event_type] || 0) + 1
+      const threatCounts = events.reduce((acc: Record<string, number>, event: SecurityEvent) => {
+        acc[event.eventType] = (acc[event.eventType] || 0) + 1
         return acc
       }, {} as Record<string, number>)
 
-      const topThreatTypes = Object.entries(threatCounts)
+      const topThreatTypes = (Object.entries(threatCounts) as [string, number][])
         .sort(([, a], [, b]) => b - a)
         .slice(0, 10)
         .map(([type, count]) => ({ type, count }))
@@ -792,8 +792,8 @@ export async function logFileOperation(
   userId: string,
   operation: 'upload' | 'download' | 'delete',
   fileName: string,
-  fileSize?: number,
   success: boolean,
+  fileSize?: number,
   errorReason?: string
 ): Promise<void> {
   await securityMonitor.logAuditEvent({
@@ -866,5 +866,3 @@ export function createSecurityMiddleware() {
   }
 }
 
-// Export utility functions
-export { SecurityMonitor, type SecurityEvent, type SecurityMetrics, type MonitoringAlert }

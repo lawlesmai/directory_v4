@@ -157,7 +157,7 @@ export const optimizeImageUrl = (url: string | null | undefined, width?: number,
 
   // If it's already a Supabase storage URL, we can add transform parameters
   if (url.includes('supabase.co/storage')) {
-    const transformParams = []
+    const transformParams: string[] = []
     if (width) transformParams.push(`width=${width}`)
     if (height) transformParams.push(`height=${height}`)
     transformParams.push('quality=80') // Optimize quality

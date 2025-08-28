@@ -19,7 +19,12 @@ export interface GlassMorphismProps {
   onHover?: (isHovered: boolean) => void;
 }
 
-const VARIANT_PRESETS = {
+const VARIANT_PRESETS: Record<string, {
+  backdropFilter?: string;
+  background?: string;
+  border?: string;
+  boxShadow?: string;
+}> = {
   subtle: {
     backdropFilter: 'blur(8px) saturate(120%)',
     background: 'rgba(255, 255, 255, 0.05)',
@@ -78,13 +83,15 @@ export const GlassMorphism: React.FC<GlassMorphismProps> = ({
   const tintColor = TINT_COLORS[tint];
   
   // Build backdrop filter
-  const backdropFilters = [];
+  const backdropFilters: string[] = [];
   if (backdrop === 'blur' || backdrop === 'both') {
-    const blurAmount = parseInt(preset.backdropFilter?.match(/blur\((\d+)px\)/)?.[1] || '12');
+    const backdropFilter = preset.backdropFilter || '';
+    const blurAmount = parseInt(backdropFilter.match(/blur\((\d+)px\)/)?.[1] || '12');
     backdropFilters.push(`blur(${blurAmount * intensityMod.blur}px)`);
   }
   if (backdrop === 'saturate' || backdrop === 'both') {
-    const saturateAmount = parseInt(preset.backdropFilter?.match(/saturate\((\d+)%\)/)?.[1] || '150');
+    const backdropFilter = preset.backdropFilter || '';
+    const saturateAmount = parseInt(backdropFilter.match(/saturate\((\d+)%\)/)?.[1] || '150');
     backdropFilters.push(`saturate(${saturateAmount}%)`);
   }
   
@@ -213,7 +220,7 @@ export const useGlassMorphism = (
     const tintColor = TINT_COLORS[tint];
     
     // Build backdrop filter
-    const backdropFilters = [];
+    const backdropFilters: string[] = [];
     if (backdrop === 'blur' || backdrop === 'both') {
       const blurAmount = parseInt(preset.backdropFilter?.match(/blur\((\d+)px\)/)?.[1] || '12');
       backdropFilters.push(`blur(${blurAmount * intensityMod.blur}px)`);

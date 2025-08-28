@@ -328,7 +328,6 @@ export const SocialAuthModal: React.FC<SocialAuthModalProps> = ({
               layout="vertical"
               onSuccess={(user) => handleSocialLogin}
               onError={(error) => setModalState(prev => ({ ...prev, error }))}
-              priorityOrder={['google', 'apple', 'facebook', 'github']}
             />
 
             {/* Custom Content */}

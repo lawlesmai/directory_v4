@@ -112,7 +112,6 @@ const BusinessCard: React.FC<BusinessCardComponentProps> = ({
     isAnimating,
     isPremium: isAnimatedPremium
   } = useCardAnimation(`business-card-${normalizedBusiness.id}`, index, {
-    enableHoverEffects: enableAnimations,
     animationDuration: 600,
     staggerDelay: 100
   });
@@ -244,7 +243,7 @@ const BusinessCard: React.FC<BusinessCardComponentProps> = ({
       transition: {
         duration: 0.6,
         delay: animationDelay / 1000,
-        ease: [0.4, 0, 0.2, 1]
+        ease: "easeOut"
       }
     },
     hover: {
@@ -271,7 +270,7 @@ const BusinessCard: React.FC<BusinessCardComponentProps> = ({
     <motion.div
       ref={cardRef}
       className={`business-card-container relative ${normalizedBusiness.isPremium ? 'premium' : ''}`}
-      variants={enableAnimations ? cardVariants : undefined}
+      variants={enableAnimations ? cardVariants as any : undefined}
       initial={enableAnimations ? "hidden" : undefined}
       animate={enableAnimations ? "visible" : undefined}
       whileHover={enableAnimations ? "hover" : undefined}
@@ -324,7 +323,7 @@ const BusinessCard: React.FC<BusinessCardComponentProps> = ({
         {/* Card Image */}
         <div className="card-image relative h-48 overflow-hidden">
           <motion.div
-            variants={imageVariants}
+            variants={imageVariants as any}
             initial="loading"
             animate={isImageLoaded ? "loaded" : "loading"}
             className="w-full h-full"

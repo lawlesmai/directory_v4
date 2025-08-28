@@ -177,7 +177,7 @@ export function validateOAuthEnvironment(): { valid: boolean; errors: string[] }
       
       if (!process.env[`${upperProvider}_CLIENT_SECRET`]) {
         errors.push(`${upperProvider}_CLIENT_SECRET is missing`)
-      } else if (!isValidClientSecret(process.env[`${upperProvider}_CLIENT_SECRET`])) {
+      } else if (!isValidClientSecret(process.env[`${upperProvider}_CLIENT_SECRET`] || '')) {
         errors.push(`${upperProvider}_CLIENT_SECRET does not meet security requirements`)
       }
     }

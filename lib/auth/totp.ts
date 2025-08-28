@@ -7,6 +7,7 @@
  */
 
 import crypto from 'crypto';
+import QRCode from 'qrcode';
 
 // TOTP Configuration - RFC 6238 compliant
 const TOTP_CONFIG = {
@@ -125,6 +126,39 @@ export function generateQRCodeURL(
   });
   
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}?${params}`;
+}
+
+/**
+ * Generates QR code data URL for TOTP setup
+ * @param secret - Base32 encoded secret
+ * @param accountName - User's account identifier (email/username)
+ * @param issuer - Service name (The Lawless Directory)
+ * @returns Promise resolving to base64 data URL for QR code image
+ */
+export async function generateQRCodeDataURL(
+  secret: string, 
+  accountName: string, 
+  issuer: string = 'The Lawless Directory'
+): Promise<string> {
+  const qrCodeURL = generateQRCodeURL(secret, accountName, issuer);
+  
+  try {
+    const dataURL = await QRCode.toDataURL(qrCodeURL, {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      width: 256
+    });
+    
+    return dataURL;
+  } catch (error) {
+    console.error('Failed to generate QR code:', error);
+    throw new TOTPError('Failed to generate QR code', TOTPErrors.INVALID_SECRET);
+  }
 }
 
 /**

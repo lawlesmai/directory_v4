@@ -55,7 +55,7 @@ export interface ProviderProfileData {
  * Profile Data Synchronization Manager
  */
 export class ProfileSyncManager {
-  private supabase = createClient()
+  protected supabase = createClient()
 
   /**
    * Sync profile data from OAuth provider
@@ -505,7 +505,7 @@ export class ProfileSyncManager {
     return updateData
   }
 
-  private isPlaceholderAvatar(url: string): boolean {
+  protected isPlaceholderAvatar(url: string): boolean {
     if (!url) return true
     
     const placeholderPatterns = [
@@ -548,12 +548,12 @@ export class ProfileSyncManager {
       
       await this.supabase
         .from('profile_sync_history')
-        .insert({
+        .insert([{
           user_id: userId,
           provider: provider,
           sync_data: syncData,
           synced_at: new Date().toISOString()
-        })
+        }])
     } catch (error) {
       console.error('Failed to record sync history:', error)
     }
@@ -568,13 +568,13 @@ export class ProfileSyncManager {
     try {
       await this.supabase
         .from('profile_conflict_resolutions')
-        .insert({
+        .insert([{
           user_id: userId,
           field_name: field,
           resolution_type: resolution,
           resolved_value: value,
           resolved_at: new Date().toISOString()
-        })
+        }])
     } catch (error) {
       console.error('Failed to record conflict resolution:', error)
     }

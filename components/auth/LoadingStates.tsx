@@ -4,7 +4,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { LoadingState, LoadingStateProps } from './types';
+import type { AuthLoadingState, LoadingStateProps } from './types';
 
 // Basic loading spinner component
 export const LoadingSpinner: React.FC<{

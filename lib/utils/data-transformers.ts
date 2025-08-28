@@ -270,7 +270,14 @@ export const createSearchSuggestions = (
   categories: any[],
   query: string
 ) => {
-  const suggestions = []
+  const suggestions: Array<{
+    text: string;
+    icon: string;
+    type: 'business' | 'category' | 'location';
+    category?: string;
+    slug?: string;
+    location?: string;
+  }> = []
 
   // Add business suggestions
   businesses.slice(0, 3).forEach(business => {

@@ -242,7 +242,7 @@ export const usePageAnimation = (config: PageAnimationConfig = {}) => {
         };
         
       case 'entrance':
-        const combinedTransform = [];
+        const combinedTransform: string[] = [];
         if (mergedConfig.enableSlideUp) combinedTransform.push('translateY(0)');
         if (mergedConfig.enableScaleIn) combinedTransform.push('scale(1)');
         
@@ -283,8 +283,10 @@ export const usePageAnimation = (config: PageAnimationConfig = {}) => {
     elementsRef.current.set(id, animationElement);
     
     // Apply initial styles
-    const initialStyles = createAnimationStyles(animationType, 'initial');
-    Object.assign(element.style, initialStyles);
+    if (animationType !== 'custom') {
+      const initialStyles = createAnimationStyles(animationType, 'initial');
+      Object.assign(element.style, initialStyles);
+    }
     
     setState(prev => ({ 
       ...prev, 
@@ -309,8 +311,10 @@ export const usePageAnimation = (config: PageAnimationConfig = {}) => {
     const { element, animationType, delay = 0 } = animationElement;
     
     setTimeout(() => {
-      const animateStyles = createAnimationStyles(animationType, 'animate');
-      Object.assign(element.style, animateStyles);
+      if (animationType !== 'custom') {
+        const animateStyles = createAnimationStyles(animationType, 'animate');
+        Object.assign(element.style, animateStyles);
+      }
       animationElement.hasAnimated = true;
       
       setState(prev => ({ 
@@ -437,11 +441,13 @@ export const usePageAnimation = (config: PageAnimationConfig = {}) => {
     
     // Apply exit animation to all elements
     elementsRef.current.forEach((animationElement) => {
-      const exitStyles = createAnimationStyles(animationElement.animationType, 'initial');
-      Object.assign(animationElement.element.style, {
-        ...exitStyles,
-        transitionDuration: `${mergedConfig.transitionDuration}ms`
-      });
+      if (animationElement.animationType !== 'custom') {
+        const exitStyles = createAnimationStyles(animationElement.animationType, 'initial');
+        Object.assign(animationElement.element.style, {
+          ...exitStyles,
+          transitionDuration: `${mergedConfig.transitionDuration}ms`
+        });
+      }
     });
     
     setTimeout(() => {
@@ -458,8 +464,10 @@ export const usePageAnimation = (config: PageAnimationConfig = {}) => {
   const resetAllAnimations = useCallback(() => {
     elementsRef.current.forEach((animationElement, id) => {
       animationElement.hasAnimated = false;
-      const initialStyles = createAnimationStyles(animationElement.animationType, 'initial');
-      Object.assign(animationElement.element.style, initialStyles);
+      if (animationElement.animationType !== 'custom') {
+        const initialStyles = createAnimationStyles(animationElement.animationType, 'initial');
+        Object.assign(animationElement.element.style, initialStyles);
+      }
     });
     
     setState(prev => ({
@@ -556,7 +564,7 @@ export const useElementAnimation = (
   
   return {
     elementRef,
-    animationStyles: shouldAnimate ? createAnimationStyles(animationType, 'initial') : {},
+    animationStyles: shouldAnimate && animationType !== 'custom' ? createAnimationStyles(animationType, 'initial') : {},
     shouldAnimate
   };
 };

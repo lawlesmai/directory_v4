@@ -197,8 +197,8 @@ export const useKeyboardShortcuts = (
   // Get all registered shortcuts
   const getShortcuts = useCallback(() => {
     return Object.entries(registryRef.current).map(([key, shortcut]) => ({
-      key,
-      ...shortcut
+      ...shortcut,
+      key: key // Override the key with the registry key
     }));
   }, []);
 

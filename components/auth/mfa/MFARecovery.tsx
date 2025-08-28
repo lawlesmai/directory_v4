@@ -117,7 +117,7 @@ const RecoverySteps: React.FC<{
     email: [
       {
         title: 'Verify Email Address',
-        description: 'We'll send a verification link to your registered email',
+        description: 'We\'ll send a verification link to your registered email',
         icon: Mail
       },
       {

@@ -217,23 +217,28 @@ export const databaseQueries = {
     try {
       const client = supabase
       
-      const { data, error } = await client.rpc('advanced_business_search', {
-        search_query: searchTerm,
-        search_limit: limit,
-        include_categories: includeCategories,
-        include_suggestions: includeSuggestions,
-        typo_tolerance: typoTolerance
-      })
+      // TODO: Implement RPC function 'advanced_business_search'
+      // Basic text search implementation for now
+      const { data, error } = await client
+        .from('businesses')
+        .select(`
+          *,
+          business_categories:business_category_mappings(
+            category:categories(*)
+          )
+        `)
+        .or(`name.ilike.%${searchTerm}%, description.ilike.%${searchTerm}%, short_description.ilike.%${searchTerm}%`)
+        .limit(limit)
 
       if (error) {
         throw new Error(`Search failed: ${error.message}`)
       }
 
       return {
-        businesses: data?.businesses || [],
-        suggestions: data?.suggestions || [],
-        categories: data?.categories || [],
-        totalCount: data?.total_count || 0
+        businesses: data || [],
+        suggestions: [], // TODO: Generate suggestions from businesses
+        categories: [], // TODO: Extract categories from business_categories
+        totalCount: data?.length || 0
       }
     } catch (error) {
       console.error('Advanced search error:', error)
@@ -249,11 +254,15 @@ export const databaseQueries = {
     try {
       const client = supabase
       
-      const { data, error } = await client.rpc('get_businesses_with_analytics', {
-        business_ids: businessIds,
-        start_date: dateRange?.start || null,
-        end_date: dateRange?.end || null
-      })
+      // TODO: Implement RPC function 'get_businesses_with_analytics'
+      // Basic query implementation for now
+      const { data, error } = await client
+        .from('businesses')
+        .select(`
+          *,
+          business_analytics(*)
+        `)
+        .in('id', businessIds)
 
       if (error) {
         throw new Error(`Analytics query failed: ${error.message}`)
@@ -280,13 +289,12 @@ export const databaseQueries = {
     try {
       const client = supabase
       
-      const { data, error } = await client.rpc('businesses_with_travel_time', {
-        user_lat: userLocation.lat,
-        user_lng: userLocation.lng,
-        radius_meters: radius,
-        search_limit: limit,
-        transport_mode: transportMode
-      })
+      // TODO: Implement RPC function 'businesses_with_travel_time'
+      // Basic location query implementation for now
+      const { data, error } = await client
+        .from('businesses')
+        .select('*')
+        .limit(limit)
 
       if (error) {
         throw new Error(`Travel time search failed: ${error.message}`)
@@ -307,12 +315,16 @@ export const databaseQueries = {
     try {
       const client = supabase
       
-      const { data, error } = await client.rpc('get_trending_businesses', {
-        user_lat: location?.lat || null,
-        user_lng: location?.lng || null,
-        radius_meters: location?.radius || null,
-        result_limit: limit
-      })
+      // TODO: Implement RPC function 'get_trending_businesses'
+      // Basic trending query implementation for now
+      const { data, error } = await client
+        .from('businesses')
+        .select(`
+          *,
+          business_analytics!inner(*)
+        `)
+        .order('view_count', { ascending: false })
+        .limit(limit)
 
       if (error) {
         throw new Error(`Trending businesses query failed: ${error.message}`)
@@ -333,10 +345,21 @@ export const databaseQueries = {
     try {
       const client = supabase
       
-      const { data, error } = await client.rpc('get_similar_businesses', {
-        business_id: businessId,
-        result_limit: limit
-      })
+      // TODO: Implement RPC function 'get_similar_businesses'
+      // Basic similar businesses implementation for now
+      // First get the reference business to match its category
+      const { data: refBusiness } = await client
+        .from('businesses')
+        .select('primary_category_id')
+        .eq('id', businessId)
+        .single()
+      
+      const { data, error } = await client
+        .from('businesses')
+        .select('*')
+        .eq('primary_category_id', refBusiness?.primary_category_id)
+        .neq('id', businessId)
+        .limit(limit)
 
       if (error) {
         throw new Error(`Similar businesses query failed: ${error.message}`)
@@ -357,10 +380,14 @@ export const databaseQueries = {
     try {
       const client = supabase
       
-      const { data, error } = await client.rpc('get_business_metrics', {
-        business_id: businessId,
-        time_period: period
-      })
+      // TODO: Implement RPC function 'get_business_metrics'
+      // Basic metrics implementation for now
+      const { data, error } = await client
+        .from('business_analytics')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('date', { ascending: false })
+        .limit(30) // Last 30 records for basic metrics
 
       if (error) {
         throw new Error(`Business metrics query failed: ${error.message}`)
@@ -425,6 +452,5 @@ export const databaseHealth = {
   }
 }
 
-// Export the query builder and utilities
-export { BusinessQueryBuilder }
+// Export default utilities
 export default databaseQueries

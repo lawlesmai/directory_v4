@@ -82,7 +82,25 @@ interface PrivacySettings {
 // Profile visibility checker
 const useProfileVisibility = (profile: UserProfile | null, privacySettings: PrivacySettings, viewMode: PreviewMode) => {
   return useMemo(() => {
-    if (!profile) return { visible: false, fields: {} };
+    if (!profile) return { 
+      visible: false, 
+      fields: {
+        avatar: false,
+        name: false,
+        businessType: false,
+        bio: false,
+        joinDate: false,
+        email: false,
+        phone: false,
+        location: false,
+        locationPrecision: 'hidden' as const,
+        website: false,
+        socialLinks: false,
+        activity: false,
+        directMessages: false,
+        verificationStatus: false,
+      }
+    };
 
     const isOwner = viewMode === 'owner';
     const isPrivateView = viewMode === 'private';

@@ -405,7 +405,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         </div>
       </div>
 
-      <GlassMorphism variant="light" className="p-6">
+      <GlassMorphism variant="subtle" className="p-6">
         <div
           ref={dropZoneRef}
           className={cn(

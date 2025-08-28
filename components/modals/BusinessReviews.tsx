@@ -43,6 +43,7 @@ export const BusinessReviews: React.FC<BusinessReviewsProps> = ({
   const [filterBy, setFilterBy] = useState<'all' | '5' | '4' | '3' | '2' | '1'>('all')
   const [showWriteReview, setShowWriteReview] = useState(false)
 
+
   // Mock data for demonstration
   useEffect(() => {
     const mockReviews: Review[] = [
@@ -92,15 +93,6 @@ export const BusinessReviews: React.FC<BusinessReviewsProps> = ({
       setLoading(false)
     }, 1000)
   }, [businessId])
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
 
   const getRatingDistribution = () => {
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
@@ -387,7 +379,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
               
               <span className="text-sage/60 text-sm flex items-center gap-1">
                 <Calendar size={12} />
-                {formatDate(review.date)}
+                {new Date(review.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
               </span>
             </div>
           </div>
@@ -480,7 +472,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
               Response from {review.businessResponse.responderName}
             </span>
             <span className="text-sage/60 text-xs">
-              {formatDate(review.businessResponse.date)}
+              {new Date(review.businessResponse.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
             </span>
           </div>
           <p className="text-sage-200 text-sm leading-relaxed">

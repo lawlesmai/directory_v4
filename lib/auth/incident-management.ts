@@ -739,8 +739,8 @@ export class IncidentManagementSystem {
   }
   
   private generateIncidentTags(event: SecurityEvent, detections: ThreatDetectionResult[]): string[] {
-    const tags = [event.type, event.severity]
-    detections.forEach(d => {
+    const tags: string[] = [event.type, event.severity]
+    detections.forEach((d: any) => {
       tags.push(d.type, d.severity)
     })
     return [...new Set(tags)]
@@ -782,7 +782,7 @@ export class IncidentManagementSystem {
     // Add event to incident timeline
     await this.supabase
       .from('incident_timeline')
-      .insert({
+      .insert([{
         incident_id: incident.id,
         timestamp: event.timestamp.toISOString(),
         event: event.event,
@@ -790,7 +790,7 @@ export class IncidentManagementSystem {
         category: event.category,
         actor: event.actor,
         evidence: event.evidence
-      })
+      }])
   }
   
   private async executeAutomatedAction(incident: SecurityIncident, action: IncidentAction): Promise<void> {

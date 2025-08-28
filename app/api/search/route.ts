@@ -266,7 +266,7 @@ export async function GET(request: NextRequest) {
           verified_only: params.verifiedOnly || false,
           result_limit: params.limit || 20,
           result_offset: params.offset || 0
-        });
+        } as any);
 
       if (searchError) {
         throw new Error(`Search failed: ${searchError.message}`);
@@ -330,7 +330,7 @@ export async function GET(request: NextRequest) {
         throw new Error(`Fallback search failed: ${error.message}`);
       }
 
-      searchResults = (data || []).map(business => ({
+      searchResults = (data || []).map((business: any) => ({
         ...business,
         distance_meters: null,
         relevance_score: business.quality_score / 5.0,
@@ -359,7 +359,7 @@ export async function GET(request: NextRequest) {
           user_location: params.latitude && params.longitude 
             ? `POINT(${params.longitude} ${params.latitude})` 
             : null
-        });
+        } as any);
       } catch (analyticsError) {
         console.warn('Failed to track search analytics:', analyticsError);
       }

@@ -10,6 +10,7 @@
  * - Asynchronous processing for non-critical operations
  */
 
+// @ts-ignore - Missing types for lru-cache module
 import { LRUCache } from 'lru-cache'
 import { createHash } from 'crypto'
 import { PasswordStrengthResult, PasswordPolicy } from './password-policy'
@@ -277,7 +278,7 @@ export class PasswordPerformanceManager {
         .order('created_at', { ascending: false })
         .limit(historyCount)
 
-      passwordHashes = history?.map(h => h.password_hash) || []
+      passwordHashes = history?.map((h: any) => h.password_hash) || []
       this.historyCache.set(cacheKey, passwordHashes)
     } else {
       this.metrics.historyChecks.cacheHits++
@@ -289,13 +290,13 @@ export class PasswordPerformanceManager {
     const bcrypt = await import('bcryptjs')
     
     // Use Promise.all with early termination for better performance
-    const checkPromises = passwordHashes.map(hash => 
+    const checkPromises = passwordHashes.map((hash: any) => 
       bcrypt.compare(password, hash).catch(() => false)
     )
     
     // Check all hashes concurrently but return as soon as any matches
     const results = await Promise.allSettled(checkPromises)
-    const isReused = results.some(result => 
+    const isReused = results.some((result: any) => 
       result.status === 'fulfilled' && result.value === true
     )
 

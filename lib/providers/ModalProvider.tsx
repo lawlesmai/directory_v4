@@ -313,7 +313,7 @@ const ModalRenderer: React.FC = () => {
 
   return (
     <div className="modal-container">
-      <AnimatePresence mode="multiple">
+      <AnimatePresence mode="wait">
         {modals
           .filter(modal => modal.isOpen)
           .map((modalState, index) => (

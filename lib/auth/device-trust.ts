@@ -278,10 +278,10 @@ export class DeviceTrustService {
         // Insert new device
         const { error: insertError } = await supabase
           .from('device_trust_scores')
-          .insert({
+          .insert([{
             ...deviceData,
             created_at: new Date().toISOString()
-          });
+          }]);
         
         if (insertError) {
           throw new Error(`Failed to register device: ${insertError.message}`);
@@ -545,7 +545,7 @@ export class DeviceTrustService {
       .limit(10);
     
     if (recentSessions && recentSessions.length > 0) {
-      const distances = recentSessions.map(session =>
+      const distances = recentSessions.map((session: any) =>
         this.calculateDistance(
           current.latitude!,
           current.longitude!,
@@ -554,7 +554,7 @@ export class DeviceTrustService {
         )
       );
       
-      const avgDistance = distances.reduce((a, b) => a + b, 0) / distances.length;
+      const avgDistance = distances.reduce((a: number, b: number) => a + b, 0) / distances.length;
       const maxDistance = Math.max(...distances);
       
       // Check for suspicious location changes
@@ -570,7 +570,7 @@ export class DeviceTrustService {
       }
       
       // Check country consistency
-      const recentCountries = [...new Set(recentSessions.map(s => s.country_code))];
+      const recentCountries = [...new Set(recentSessions.map((s: any) => s.country_code))];
       if (recentCountries.length > 3) {
         riskFactors.push('multiple_countries');
         geoScore *= 0.5;
@@ -631,12 +631,12 @@ export class DeviceTrustService {
       .limit(20);
     
     if (recentSessions && recentSessions.length > 3) {
-      const hours = recentSessions.map(session => 
+      const hours = recentSessions.map((session: any) => 
         new Date(session.created_at).getHours()
       );
       
-      const avgHour = hours.reduce((a, b) => a + b, 0) / hours.length;
-      const variance = hours.reduce((sum, hour) => 
+      const avgHour = hours.reduce((a: number, b: number) => a + b, 0) / hours.length;
+      const variance = hours.reduce((sum: number, hour: number) => 
         sum + Math.pow(hour - avgHour, 2), 0
       ) / hours.length;
       
@@ -763,7 +763,7 @@ export class DeviceTrustService {
     return deg * (Math.PI / 180);
   }
   
-  private static getTrustLevel(score: number): 'low' | 'medium' | 'high' | 'verified' {
+  public static getTrustLevel(score: number): 'low' | 'medium' | 'high' | 'verified' {
     const thresholds = DEVICE_TRUST_CONFIG.trustThresholds;
     if (score >= thresholds.verified) return 'verified';
     if (score >= thresholds.high) return 'high';
@@ -787,7 +787,7 @@ export class DeviceTrustService {
   }): Promise<void> {
     await supabase
       .from('auth_audit_logs')
-      .insert({
+      .insert([{
         event_type: `device_${params.eventType}`,
         event_category: 'device_trust',
         user_id: params.userId,
@@ -797,7 +797,7 @@ export class DeviceTrustService {
           device_id: params.deviceId,
           trust_score: params.trustScore
         }
-      });
+      }]);
   }
 }
 
@@ -886,7 +886,7 @@ export class DeviceTrustUtils {
         .eq('is_active', true)
         .order('last_used_at', { ascending: false });
       
-      return devices?.map(device => ({
+      return devices?.map((device: any) => ({
         deviceId: device.device_id,
         deviceName: device.device_name || 'Unknown Device',
         trustLevel: device.trust_level,
@@ -922,7 +922,7 @@ export class DeviceTrustUtils {
       // Log revocation event
       await supabase
         .from('auth_audit_logs')
-        .insert({
+        .insert([{
           event_type: 'device_trust_revoked',
           event_category: 'device_trust',
           user_id: userId,
@@ -931,7 +931,7 @@ export class DeviceTrustUtils {
             device_id: deviceId,
             reason
           }
-        });
+        }]);
       
       return { success: true };
       

@@ -19,6 +19,7 @@ export interface PermissionContext {
   scope?: Record<string, any>
   requiresMfa?: boolean
   emergencyOverride?: boolean
+  businessOwnerOverride?: boolean
 }
 
 // Permission check result

@@ -164,8 +164,7 @@ export async function hashPassword(plainPassword: string): Promise<{
       memoryCost: SECURITY_CONFIG.PASSWORD_HASH.memoryCost,
       timeCost: SECURITY_CONFIG.PASSWORD_HASH.timeCost,
       parallelism: SECURITY_CONFIG.PASSWORD_HASH.parallelism,
-      hashLength: SECURITY_CONFIG.PASSWORD_HASH.hashLength,
-      saltLength: SECURITY_CONFIG.PASSWORD_HASH.saltLength
+      hashLength: SECURITY_CONFIG.PASSWORD_HASH.hashLength
     })
     
     return {

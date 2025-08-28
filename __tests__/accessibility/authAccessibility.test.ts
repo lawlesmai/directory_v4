@@ -28,7 +28,7 @@ test.describe('Authentication Accessibility', () => {
     ];
 
     for (const selector of inputs) {
-      const element = await page.;
+      const element = await page.$(selector);
       await element?.focus();
       
       expect(await page.evaluate((el) => document.activeElement === el, element))
@@ -39,8 +39,8 @@ test.describe('Authentication Accessibility', () => {
   test('Password reset form aria attributes', async ({ page }) => {
     await page.goto('/forgot-password');
     
-    const emailInput = await page.;
-    const submitButton = await page.;
+    const emailInput = await page.$('input[type="email"]');
+    const submitButton = await page.$('button[type="submit"]');
 
     expect(await emailInput?.getAttribute('aria-label')).toBeTruthy();
     expect(await submitButton?.getAttribute('aria-label')).toBeTruthy();

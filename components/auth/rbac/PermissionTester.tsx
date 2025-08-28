@@ -4,7 +4,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TestTube, Play, RotateCcw, Check, X, AlertTriangle,
-  User, Users, Shield, Crown, Building2, Tool, Zap,
+  User, Users, Shield, Crown, Building2, Wrench, Zap,
   ChevronRight, ChevronDown, Info, CheckCircle, XCircle,
   AlertCircle, Lightbulb, ArrowRight, Copy, Download
 } from 'lucide-react';
@@ -24,7 +24,7 @@ import type { UserProfile } from '../types';
 const roleIcons = {
   customer: User,
   business_owner: Building2,
-  service_provider: Tool,
+  service_provider: Wrench,
   moderator: Shield,
   admin: Crown,
   super_admin: Zap

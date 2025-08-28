@@ -186,7 +186,7 @@ export class SMSVerificationService {
       // Create challenge in database
       const { data: challenge, error: challengeError } = await supabase
         .from('auth_mfa_challenges')
-        .insert({
+        .insert([{
           user_id: userId,
           challenge_type: 'sms',
           challenge_code: hashedCode,
@@ -194,7 +194,7 @@ export class SMSVerificationService {
           ip_address: options.ipAddress,
           user_agent: options.userAgent,
           device_id: options.deviceId
-        })
+        }])
         .select('id')
         .single();
       
@@ -327,7 +327,7 @@ export class SMSVerificationService {
       // Log verification attempt
       await supabase
         .from('mfa_verification_attempts')
-        .insert({
+        .insert([{
           user_id: challenge.user_id,
           challenge_id: challengeId,
           verification_method: 'sms',
@@ -337,7 +337,7 @@ export class SMSVerificationService {
           ip_address: options.ipAddress,
           user_agent: options.userAgent,
           response_time_ms: 0 // Will be calculated on frontend
-        });
+        }]);
       
       if (isValid) {
         // Clean up successful challenge after a delay to prevent replay
@@ -502,13 +502,13 @@ export class SMSVerificationService {
   ): Promise<void> {
     await supabase
       .from('mfa_rate_limits')
-      .insert({
+      .insert([{
         user_id: userId,
         limit_type: limitType,
         window_duration_minutes: 60,
         max_attempts: SMS_CONFIG.maxAttemptsPerHour,
         attempts: 1
-      });
+      }]);
   }
   
   /**
@@ -526,7 +526,7 @@ export class SMSVerificationService {
   }): Promise<void> {
     await supabase
       .from('auth_audit_logs')
-      .insert({
+      .insert([{
         event_type: 'sms_verification_sent',
         event_category: 'mfa',
         user_id: params.userId,
@@ -539,7 +539,7 @@ export class SMSVerificationService {
           purpose: params.purpose,
           device_id: params.deviceId
         }
-      });
+      }]);
   }
 }
 

@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassMorphism } from './GlassMorphism';
-import { SearchSuggestions } from './SearchSuggestions';
+import { SearchSuggestions, SearchSuggestion as ComponentSearchSuggestion } from './SearchSuggestions';
 import { useSearchFunctionality } from '../hooks/useSearchFunctionality';
 import { useCommonShortcuts } from '../hooks/useKeyboardShortcuts';
 
@@ -46,8 +46,7 @@ export default function SearchBar({
     onSearch,
     debounceMs: 300,
     minQueryLength: 2,
-    enableHistory: true,
-    enableKeyboardNavigation: true
+    enableHistory: true
   });
 
   // Keyboard shortcuts
@@ -77,8 +76,21 @@ export default function SearchBar({
   // Handle form submission
   const handleSubmit = React.useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    executeSearch();
-  }, [executeSearch]);
+    executeSearch(query);
+  }, [executeSearch, query]);
+
+  // Map hook suggestions to component format
+  const mappedSuggestions: ComponentSearchSuggestion[] = React.useMemo(() => {
+    return suggestions.map(suggestion => ({
+      id: suggestion.id,
+      text: suggestion.text,
+      type: suggestion.isRecent ? 'recent' as const : 
+            suggestion.category === 'Business' ? 'business' as const :
+            suggestion.category === 'Location' ? 'location' as const :
+            'category' as const,
+      icon: suggestion.icon || '🔍'
+    }));
+  }, [suggestions]);
 
   // Handle input focus
   const handleInputFocus = React.useCallback(() => {
@@ -86,9 +98,13 @@ export default function SearchBar({
   }, [showSuggestionsHandler]);
 
   // Handle suggestion selection
-  const handleSuggestionSelect = React.useCallback((suggestion: any, index: number) => {
-    selectSuggestion(suggestion, index);
-  }, [selectSuggestion]);
+  const handleSuggestionSelect = React.useCallback((suggestion: ComponentSearchSuggestion, index: number) => {
+    // Map back to hook format for the selectSuggestion call
+    const hookSuggestion = suggestions.find(s => s.id === suggestion.id);
+    if (hookSuggestion) {
+      selectSuggestion(hookSuggestion);
+    }
+  }, [selectSuggestion, suggestions]);
 
   // Handle clear button click
   const handleClearClick = React.useCallback(() => {
@@ -210,7 +226,7 @@ export default function SearchBar({
       {/* Search Suggestions */}
       <div ref={suggestionsRef}>
         <SearchSuggestions
-          suggestions={suggestions}
+          suggestions={mappedSuggestions}
           selectedIndex={selectedSuggestionIndex}
           onSelect={handleSuggestionSelect}
           onClose={hideSuggestions}

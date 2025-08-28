@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GlassMorphism } from '../GlassMorphism';
-import type { AuthError, ErrorDisplayProps } from './types';
+import type { AuthError as IAuthError, ErrorDisplayProps } from './types';
 
 // Base error message component
 export const ErrorMessage: React.FC<{
@@ -178,7 +178,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   const errorMessage = typeof error === 'string' ? error : error.message;
   const errorCode = typeof error === 'object' && error.code ? error.code : undefined;
 
-  const getErrorDetails = (error: AuthError | string) => {
+  const getErrorDetails = (error: IAuthError | string) => {
     if (typeof error === 'string') return { message: error, suggestions: [] };
 
     const suggestions: Array<{ label: string; action?: () => void }> = [];
@@ -398,7 +398,7 @@ export const NetworkError: React.FC<{
 
 // Authentication-specific error messages
 export const AuthError: React.FC<{
-  error: AuthError | string | null;
+  error: IAuthError | string | null;
   onDismiss?: () => void;
   showSuggestions?: boolean;
   className?: string;

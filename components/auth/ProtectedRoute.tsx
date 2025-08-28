@@ -37,7 +37,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 };
 
 // Get user role from profile
-const getUserRole = (profile: UserProfile | null): UserRole => {
+export const getUserRole = (profile: UserProfile | null): UserRole => {
   if (!profile) return 'customer';
   
   // Check for admin roles first

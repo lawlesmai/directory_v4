@@ -88,7 +88,7 @@ export const useCardAnimations = (options: UseCardAnimationsOptions = {}) => {
       element.style.opacity = '0';
       element.style.transform = 'translateY(30px)';
       element.style.transition = `all ${config.animationDuration}ms ${config.easing}`;
-      element.style.transitionDelay = `${index * config.staggerDelay}ms`;
+      element.style.transitionDelay = `${index * (config.staggerDelay || 150)}ms`;
     }
 
     // Set up hover effects
@@ -146,7 +146,7 @@ export const useCardAnimations = (options: UseCardAnimationsOptions = {}) => {
       onAnimationComplete?.(cardId);
     } else {
       // Delayed animation based on index
-      const delay = index * config.staggerDelay;
+      const delay = index * (config.staggerDelay || 150);
       
       const timeout = setTimeout(() => {
         element.style.opacity = '1';
@@ -316,20 +316,6 @@ export const useCardAnimations = (options: UseCardAnimationsOptions = {}) => {
   }, [cardStates]);
 
   return {
-    handleMouseEnter: () => {
-      if (ref.current) {
-        ref.current.style.transform = "translateY(-4px) scale(1.02)";
-        ref.current.style.boxShadow = "0 8px 30px rgba(0, 0, 0, 0.15)";
-        ref.current.style.zIndex = "10";
-      }
-    },
-    handleMouseLeave: () => {
-      if (ref.current) {
-        ref.current.style.transform = "translateY(0) scale(1)";
-        ref.current.style.boxShadow = "";
-        ref.current.style.zIndex = "";
-      }
-    },
     // Methods
     registerCard,
     unregisterCard,

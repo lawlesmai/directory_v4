@@ -5,6 +5,15 @@ import { Phone, Mail, MapPin, Calendar, ExternalLink, MessageCircle } from 'luci
 import { cn } from '@/lib/utils'
 import { Business } from '@/types/business'
 
+interface BusinessAction {
+  id: string
+  label: string
+  icon: React.ReactNode
+  onClick: () => void
+  className: string
+  disabled?: boolean
+}
+
 interface BusinessActionsProps {
   business: Business
   onBookingRequest?: (business: Business) => void
@@ -119,8 +128,8 @@ export const BusinessActions: React.FC<BusinessActionsProps> = ({
     }
   }
 
-  const primaryActions = []
-  const secondaryActions = []
+  const primaryActions: BusinessAction[] = []
+  const secondaryActions: BusinessAction[] = []
 
   // Primary actions (more prominent)
   if (business.phone && isCallingEnabled) {
@@ -183,7 +192,7 @@ export const BusinessActions: React.FC<BusinessActionsProps> = ({
               key={action.id}
               type="button"
               onClick={action.onClick}
-              disabled={action.disabled}
+              disabled={action.disabled || false}
               className={cn(
                 "flex items-center justify-center gap-2 px-6 py-3 rounded-lg",
                 "font-semibold transition-all duration-200",
@@ -208,7 +217,7 @@ export const BusinessActions: React.FC<BusinessActionsProps> = ({
               key={action.id}
               type="button"
               onClick={action.onClick}
-              disabled={action.disabled}
+              disabled={action.disabled || false}
               className={cn(
                 "flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg",
                 "font-medium text-sm transition-all duration-200",

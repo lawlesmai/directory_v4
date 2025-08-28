@@ -212,7 +212,7 @@ export const useMobileFeatures = (
       const downlink = connection.downlink || 0;
       const saveData = connection.saveData || false;
       
-      const estimatedSpeed = 
+      const estimatedSpeed: 'slow' | 'medium' | 'fast' = 
         effectiveType === '4g' ? 'fast' :
         effectiveType === '3g' ? 'medium' : 'slow';
 

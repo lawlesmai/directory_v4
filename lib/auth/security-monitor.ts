@@ -161,10 +161,10 @@ export class SecurityMonitor {
       const enrichedEvent = await this.enrichSecurityEvent(event, httpRequest)
       
       // Calculate risk score
-      const riskScore = await this.calculateRiskScore(enrichedEvent)
+      const riskScore = await this.calculateRiskScore(enrichedEvent as any)
       
       // Determine if investigation is required
-      const requiresInvestigation = this.requiresInvestigation(enrichedEvent, riskScore)
+      const requiresInvestigation = this.requiresInvestigation(enrichedEvent as any, riskScore)
       
       // Create complete event
       const completeEvent: SecurityEvent = {
@@ -227,7 +227,7 @@ export class SecurityMonitor {
         ...incidentMetrics,
         ...geoMetrics,
         trendData
-      }
+      } as any
 
     } catch (error) {
       console.error('Security metrics error:', error)
@@ -250,7 +250,7 @@ export class SecurityMonitor {
       evidence: Record<string, any>
     }>
   }> {
-    const anomalies = []
+    const anomalies: any[] = []
 
     try {
       // Location anomaly detection
@@ -421,7 +421,7 @@ export class SecurityMonitor {
     try {
       const { data, error } = await this.supabase
         .from('security_incidents')
-        .insert({
+        .insert([{
           incident_type: event.type,
           severity: event.severity,
           user_id: event.userId,
@@ -431,7 +431,7 @@ export class SecurityMonitor {
           evidence: event.evidence,
           status: event.requiresInvestigation ? 'open' : 'resolved',
           admin_notified: event.adminNotified
-        })
+        }])
         .select('id')
         .single()
 
@@ -507,7 +507,7 @@ export class SecurityMonitor {
       if (!currentGeo) return null
 
       // Check if current location is unusual
-      const knownCountries = new Set(locations.map(l => l.country_code))
+      const knownCountries = new Set(locations.map((l: any) => l.country_code))
       if (!knownCountries.has(currentGeo.country)) {
         return {
           type: 'location_anomaly',
@@ -545,8 +545,8 @@ export class SecurityMonitor {
       if (!devices || devices.length === 0) return null
 
       // Simple device fingerprinting based on user agent
-      const knownUserAgents = devices.map(d => d.user_agent)
-      const isKnownDevice = knownUserAgents.some(ua => 
+      const knownUserAgents = devices.map((d: any) => d.user_agent)
+      const isKnownDevice = knownUserAgents.some((ua: any) => 
         ua && this.calculateUserAgentSimilarity(userAgent, ua) > 0.8
       )
 
@@ -584,7 +584,7 @@ export class SecurityMonitor {
       if (!logins || logins.length < 5) return null
 
       // Analyze login times for unusual patterns
-      const hours = logins.map(l => new Date(l.created_at).getHours())
+      const hours = logins.map((l: any) => new Date(l.created_at).getHours())
       const usualHours = this.getUsualHours(hours)
       const currentHour = new Date().getHours()
 

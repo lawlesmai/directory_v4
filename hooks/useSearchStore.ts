@@ -3,10 +3,11 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { SearchSuggestion, SearchFilters } from '../components/SearchInterface';
 import type { Business } from '../types/business';
+import type { EnhancedBusiness } from '../lib/api/businesses';
 
 // Search result type
 export interface SearchResult {
-  businesses: Business[];
+  businesses: EnhancedBusiness[];
   total: number;
   hasMore: boolean;
   query: string;
@@ -193,7 +194,7 @@ export const useSearchStore = create<SearchStore>()(
               lng: searchFilters.location.lng,
             } : undefined,
             radius: searchFilters.distance * 1609.34, // Convert miles to meters
-            sortBy: 'relevance',
+            sortBy: 'quality_score',
             filters: {
               rating: searchFilters.rating || undefined,
               openNow: searchFilters.businessHours === 'open_now',

@@ -342,7 +342,7 @@ export const VerificationDashboard: React.FC<VerificationDashboardProps> = ({
     if (dashboardData.nextSteps.length === 0) return null;
 
     return (
-      <GlassMorphism variant="light" className="p-6 mb-6">
+      <GlassMorphism variant="subtle" className="p-6 mb-6">
         <h3 className="text-lg font-semibold text-cream mb-4">Next Steps</h3>
         <div className="space-y-3">
           {dashboardData.nextSteps.map((step, index) => (
@@ -359,7 +359,7 @@ export const VerificationDashboard: React.FC<VerificationDashboardProps> = ({
   };
 
   const renderDocumentStatus = () => (
-    <GlassMorphism variant="light" className="p-6 mb-6">
+    <GlassMorphism variant="subtle" className="p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-cream">Documents Submitted</h3>
         <button
@@ -424,7 +424,7 @@ export const VerificationDashboard: React.FC<VerificationDashboardProps> = ({
   );
 
   const renderTimeline = () => (
-    <GlassMorphism variant="light" className="p-6">
+    <GlassMorphism variant="subtle" className="p-6">
       <h3 className="text-lg font-semibold text-cream mb-6">Verification Timeline</h3>
       
       <div className="relative">
@@ -476,7 +476,7 @@ export const VerificationDashboard: React.FC<VerificationDashboardProps> = ({
   );
 
   const renderSupportSection = () => (
-    <GlassMorphism variant="light" className="p-6 mt-6">
+    <GlassMorphism variant="subtle" className="p-6 mt-6">
       <h3 className="text-lg font-semibold text-cream mb-4">Need Help?</h3>
       <p className="text-sage/70 text-sm mb-4">
         If you have questions about your verification or need assistance, our support team is here to help.

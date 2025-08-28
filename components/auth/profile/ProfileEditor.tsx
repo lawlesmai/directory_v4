@@ -80,7 +80,7 @@ const profileEditSchema = z.object({
     facebook: z.string().optional(),
   }),
   
-  businessType: z.enum(['customer', 'business_owner', 'service_provider', 'other']),
+  businessType: z.enum(['customer', 'business_owner', 'service_provider', 'admin', 'other']),
   
   preferences: z.object({
     theme: z.enum(['light', 'dark', 'system']),

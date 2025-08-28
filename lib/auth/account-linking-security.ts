@@ -366,7 +366,7 @@ export class AccountLinkingSecurity {
           expires_at: expiresAt.toISOString(),
           max_attempts: 3,
           attempt_count: 0
-        })
+        } as any)
       
       return { success: true, challengeId }
     } catch (error) {
@@ -397,7 +397,7 @@ export class AccountLinkingSecurity {
           max_attempts: 5,
           attempt_count: 0,
           metadata: { provider }
-        })
+        } as any)
       
       // Send verification email (implement email service)
       await this.sendVerificationEmail(email, verificationCode)
@@ -423,7 +423,7 @@ export class AccountLinkingSecurity {
         provider_email: request.providerEmail,
         status: 'verified',
         created_at: new Date().toISOString()
-      })
+      } as any)
     
     return verificationId
   }
@@ -467,7 +467,7 @@ export class AccountLinkingSecurity {
     metadata?: any
   }) {
     try {
-      await this.(supabase as any).from('auth_audit_logs').insert({
+      await (this.supabase as any).from('auth_audit_logs').insert({
         event_type: event.eventType,
         event_category: 'account_linking_security',
         user_id: event.userId,
@@ -477,7 +477,7 @@ export class AccountLinkingSecurity {
           provider: event.provider,
           ...event.metadata
         }
-      })
+      } as any)
     } catch (error) {
       console.error('Failed to log security event:', error)
     }
@@ -492,7 +492,7 @@ export class AccountLinkingSecurity {
   }
   
   private async incrementChallengeAttempts(challengeId: string) {
-    await this.supabase.rpc('increment_challenge_attempts', { challenge_id: challengeId })
+    await this.supabase.rpc('increment_challenge_attempts', { challenge_id: challengeId } as any)
   }
   
   private async completeChallengeValidation(challengeId: string) {
@@ -510,7 +510,7 @@ export class AccountLinkingSecurity {
   }
   
   private async incrementVerificationAttempts(verificationId: string) {
-    await this.supabase.rpc('increment_verification_attempts', { verification_id: verificationId })
+    await this.supabase.rpc('increment_verification_attempts', { verification_id: verificationId } as any)
   }
   
   private async completeEmailVerification(verificationId: string) {

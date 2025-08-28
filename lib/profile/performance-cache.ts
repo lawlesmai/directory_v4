@@ -462,7 +462,7 @@ export class ProfileCacheManager {
     const supabase = createClient()
     
     const { data: score } = await supabase
-      .rpc('calculate_profile_completion_score', { user_uuid: userId })
+      .rpc('calculate_profile_completion_score', { user_uuid: userId } as any)
       .single()
 
     if (score) {
@@ -591,7 +591,7 @@ export class QueryOptimizer {
           .rpc('get_user_preferences_with_inheritance', {
             user_uuid: userId,
             pref_category: null
-          }),
+          } as any),
         priority: 2
       },
       {
@@ -599,7 +599,7 @@ export class QueryOptimizer {
         query: () => this.supabase
           .rpc('calculate_profile_completion_score', {
             user_uuid: userId
-          })
+          } as any)
           .single(),
         priority: 1
       }
@@ -608,10 +608,10 @@ export class QueryOptimizer {
     const [profileResult, preferencesResult, completionResult] = await this.batchExecute(queries)
 
     return {
-      profile: profileResult.data,
-      preferences: preferencesResult.data || [],
-      completion: completionResult.data,
-      roles: profileResult.data?.user_roles?.filter((ur: any) => ur.is_active)
+      profile: (profileResult as any).data,
+      preferences: (preferencesResult as any).data || [],
+      completion: (completionResult as any).data,
+      roles: (profileResult as any).data?.user_roles?.filter((ur: any) => ur.is_active)
         .map((ur: any) => ur.roles) || []
     }
   }
@@ -644,14 +644,17 @@ export const queryOptimizer = new QueryOptimizer()
 
 // React cache implementations for SSR optimization
 export const getCachedProfile = cache(async (userId: string) => {
+  const supabase = createClient()
   return profileCache.get(
     `profile:${userId}`,
-    () => queryOptimizer.supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-      .then(({ data }) => data),
+    async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      return data
+    },
     {
       ttl: 600, // 10 minutes
       tags: [`user:${userId}`, 'profiles']
@@ -664,14 +667,17 @@ export const getCachedUserPreferences = cache(async (userId: string, category?: 
     ? `preferences:${userId}:${category}` 
     : `preferences:${userId}`
 
+  const supabase = createClient()
   return profileCache.get(
     cacheKey,
-    () => queryOptimizer.supabase
-      .rpc('get_user_preferences_with_inheritance', {
-        user_uuid: userId,
-        pref_category: category || null
-      })
-      .then(({ data }) => data),
+    async () => {
+      const { data } = await supabase
+        .rpc('get_user_preferences_with_inheritance', {
+          user_uuid: userId,
+          pref_category: category || null
+        } as any)
+      return data
+    },
     {
       ttl: 300, // 5 minutes
       tags: [`user:${userId}`, 'preferences']
@@ -680,12 +686,15 @@ export const getCachedUserPreferences = cache(async (userId: string, category?: 
 })
 
 export const getCachedCompletionScore = cache(async (userId: string) => {
+  const supabase = createClient()
   return profileCache.get(
     `completion:${userId}`,
-    () => queryOptimizer.supabase
-      .rpc('calculate_profile_completion_score', { user_uuid: userId })
-      .single()
-      .then(({ data }) => data),
+    async () => {
+      const { data } = await supabase
+        .rpc('calculate_profile_completion_score', { user_uuid: userId } as any)
+        .single()
+      return data
+    },
     {
       ttl: 180, // 3 minutes
       tags: [`user:${userId}`, 'completion']

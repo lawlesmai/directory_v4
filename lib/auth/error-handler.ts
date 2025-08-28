@@ -487,7 +487,7 @@ export class OAuthErrorHandler {
 
       // Also log to security events if it's a security-related error
       if (oauthError.type === 'SECURITY_VIOLATION' || oauthError.type === 'CSRF_VIOLATION') {
-        await this.supabase.from('oauth_security_incidents').insert({
+        await this.supabase.from('oauth_security_incidents').insert([{
           incident_type: oauthError.type.toLowerCase(),
           severity: 'high',
           description: oauthError.message,
@@ -499,7 +499,7 @@ export class OAuthErrorHandler {
             error: oauthError,
             context: additionalContext
           }
-        })
+        }])
       }
 
     } catch (error) {
@@ -528,8 +528,8 @@ export class OAuthErrorHandler {
         .eq('event_type', 'oauth_error')
         .eq('success', false)
         .gte('created_at', since)
-        .then(result => ({
-          data: result.data?.filter(log => 
+        .then((result: any) => ({
+          data: result.data?.filter((log: any) => 
             !provider || log.event_data?.provider === provider
           )
         }))
@@ -544,15 +544,15 @@ export class OAuthErrorHandler {
       }
 
       const totalAttempts = errors.length
-      const errorTypes = errors.reduce((acc, error) => {
+      const errorTypes = errors.reduce((acc: any, error: any) => {
         const type = error.event_data?.error_type || 'UNKNOWN'
         acc[type] = (acc[type] || 0) + 1
         return acc
       }, {} as Record<string, number>)
 
-      const uniqueUsers = new Set(errors.map(e => e.user_id).filter(Boolean)).size
+      const uniqueUsers = new Set(errors.map((e: any) => e.user_id).filter(Boolean)).size
       const commonErrors = Object.entries(errorTypes)
-        .map(([type, count]) => ({ type, count }))
+        .map(([type, count]) => ({ type, count: count as number }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 5)
 

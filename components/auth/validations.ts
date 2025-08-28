@@ -38,7 +38,7 @@ const phone = z
 export const loginSchema = z.object({
   email,
   password: z.string().min(1, 'Password is required'),
-  rememberMe: z.boolean().default(false)
+  rememberMe: z.boolean()
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -108,7 +108,7 @@ export const registerStep3Schema = z.object({
   privacyAccepted: z.boolean().refine(val => val === true, {
     message: 'You must accept the privacy policy'
   }),
-  subscribeNewsletter: z.boolean().default(false)
+  subscribeNewsletter: z.boolean()
 });
 
 export type RegisterStep3Data = z.infer<typeof registerStep3Schema>;

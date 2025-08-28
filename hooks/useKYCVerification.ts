@@ -10,7 +10,7 @@ export interface UseKYCVerificationReturn {
   error: string | null;
   initializeVerification: () => Promise<void>;
   submitStepData: (stepId: string, data: any) => Promise<void>;
-  uploadDocument: (file: File, documentType: string) => Promise<void>;
+  uploadDocument: (file: File, documentType: string) => Promise<any>;
   submitForReview: (finalData: any) => Promise<any>;
   refreshStatus: () => Promise<void>;
 }

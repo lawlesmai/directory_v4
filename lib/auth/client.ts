@@ -166,7 +166,7 @@ export class AuthService {
     return {
       ...user,
       roles: roles?.map((r: any) => r.role?.name).filter(Boolean) || [],
-      owned_businesses: businesses?.map(b => b.id) || [],
+      owned_businesses: businesses?.map((b: any) => b.id) || [],
       subscription: businesses?.[0] ? {
         tier: businesses[0].subscription_tier || 'free',
         valid_until: businesses[0].subscription_valid_until,
@@ -246,7 +246,7 @@ export class AuthService {
     const { data, error } = await this.client.rpc('enable_mfa', {
       p_user_id: user.id,
       p_mfa_type: type
-    })
+    } as any)
 
     if (error) throw error
     return data
@@ -263,7 +263,7 @@ export class AuthService {
       p_user_id: user.id,
       p_code: code,
       p_challenge_type: type
-    })
+    } as any)
 
     if (error) throw error
     return data

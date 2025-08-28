@@ -26,7 +26,8 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
-  HelpCircle
+  HelpCircle,
+  MessageSquare
 } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -111,12 +112,12 @@ const PrivacyLevelIndicator: React.FC<{
 };
 
 // Privacy explanation component
-const PrivacyExplanation: React.FC<{
+const PrivacyExplanation = ({ setting, value, className }: {
   setting: string;
   value: any;
   className?: string;
-}> = ({ setting, value, className }) => {
-  const explanations: Record<string, Record<string, { text: string; impact: 'positive' | 'neutral' | 'warning' }>} = {
+}) => {
+  const explanations: Record<string, Record<string, { text: string; impact: 'positive' | 'neutral' | 'warning' }>> = {
     profileVisibility: {
       public: { text: 'Anyone can view your profile and basic information', impact: 'warning' },
       business_only: { text: 'Only verified business owners can see your profile', impact: 'neutral' },
@@ -524,6 +525,9 @@ export const PrivacyControls: React.FC<{
         // Update profile with privacy settings
         await updateProfile({
           preferences: {
+            theme: 'system',
+            notifications: { email: false, push: false, marketing: false },
+            accessibility: { highContrast: false, largeText: false, reducedMotion: false },
             ...profile?.preferences,
             privacy: {
               profileVisible: data.profileVisibility === 'public',
@@ -620,7 +624,8 @@ export const PrivacyControls: React.FC<{
                     icon={Mail}
                     settingKey="showEmail"
                     warning="Your email may be used for spam"
-                    {...field}
+                    checked={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -635,7 +640,8 @@ export const PrivacyControls: React.FC<{
                     icon={Phone}
                     settingKey="showPhone"
                     warning="Your phone may receive unwanted calls"
-                    {...field}
+                    checked={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -706,7 +712,8 @@ export const PrivacyControls: React.FC<{
                     description="Allow others to see your reviews and interactions"
                     icon={Activity}
                     settingKey="allowDirectMessages"
-                    {...field}
+                    checked={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -719,7 +726,8 @@ export const PrivacyControls: React.FC<{
                     label="Allow Direct Messages"
                     description="Let other users send you private messages"
                     icon={MessageSquare}
-                    {...field}
+                    checked={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -732,7 +740,8 @@ export const PrivacyControls: React.FC<{
                     label="Appear in Search"
                     description="Allow your profile to appear in search results"
                     icon={Search}
-                    {...field}
+                    checked={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -754,7 +763,8 @@ export const PrivacyControls: React.FC<{
                   <PrivacyToggle
                     label="Analytics Data"
                     description="Help improve our service with anonymous usage data"
-                    {...field}
+                    checked={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -766,7 +776,8 @@ export const PrivacyControls: React.FC<{
                   <PrivacyToggle
                     label="Personalization"
                     description="Use your data to personalize recommendations"
-                    {...field}
+                    checked={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -779,7 +790,8 @@ export const PrivacyControls: React.FC<{
                     label="Third-party Sharing"
                     description="Share anonymized data with trusted partners"
                     warning="This may affect your privacy"
-                    {...field}
+                    checked={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />

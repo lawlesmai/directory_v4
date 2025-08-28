@@ -233,7 +233,10 @@ class Analytics {
             largestContentfulPaint: 0,
             cumulativeLayoutShift: 0,
             sessionId: this.currentSession.sessionId,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            url: window.location.href,
+            deviceType: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop',
+            rating: 'good' // Will be calculated based on metrics
           };
 
           // Get paint metrics
@@ -531,7 +534,8 @@ class Analytics {
       }
     });
 
-    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    const total = scores.reduce((sum: number, score: number) => sum + score, 0);
+    return Math.round(total / scores.length);
   }
 
   public getPopularSearches(limit: number = 10): { query: string; count: number }[] {
@@ -656,7 +660,7 @@ class Analytics {
 // Singleton instance
 let analyticsInstance: Analytics | null = null;
 
-export const initializeAnalytics = (config?: Parameters<typeof Analytics.prototype.constructor>[0]): Analytics => {
+export const initializeAnalytics = (config?: any): Analytics => {
   if (!analyticsInstance) {
     analyticsInstance = new Analytics(config);
   }

@@ -169,14 +169,14 @@ export async function GET(request: NextRequest) {
         .rpc('get_search_suggestions', {
           partial_query: query,
           suggestion_limit: limit
-        });
+        } as any);
 
       if (dbError) {
         throw new Error(`Database error: ${dbError.message}`);
       }
 
       // Transform database results to our response format
-      const suggestions: SuggestionResponse[] = (dbSuggestions || []).map((item: any) => ({
+      const suggestions: SuggestionResponse[] = ((dbSuggestions as any[]) || []).map((item: any) => ({
         suggestion: item.suggestion,
         type: item.suggestion_type as SuggestionResponse['type'],
         icon: getIconForType(item.suggestion_type, item.suggestion),

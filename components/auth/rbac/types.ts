@@ -53,6 +53,7 @@ export interface RoleDefinition {
   level: number; // Hierarchy level (0 = lowest, 100 = highest)
   parentRole?: string; // For role hierarchy
   childRoles?: string[]; // Sub-roles
+  children?: RoleDefinition[]; // Child role objects for hierarchy management
   permissions: Permission[];
   inheritedPermissions?: Permission[]; // From parent roles
   contexts: BusinessContext[]; // Where this role can be applied

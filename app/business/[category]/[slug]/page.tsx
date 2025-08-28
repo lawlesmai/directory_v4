@@ -27,20 +27,20 @@ export async function generateMetadata({ params }: BusinessPageProps): Promise<M
     }
 
     const businessUrl = `https://lawlessdirectory.com/business/${params.category}/${params.slug}`
-    const description = business.shortDescription || business.description.slice(0, 160)
+    const description = (business as any).short_description || (business as any).description?.slice(0, 160)
 
     return {
-      title: `${business.name} - ${business.category} | The Lawless Directory`,
+      title: `${business.name} - ${(business as any).category || 'Business'} | The Lawless Directory`,
       description,
       keywords: [
         business.name,
-        business.category,
-        business.subcategory,
-        business.address.city,
-        business.address.state,
+        (business as any).category,
+        (business as any).subcategory,
+        (business as any).address?.city || (business as any).city,
+        (business as any).address?.state || (business as any).state,
         'local business',
         'directory',
-        ...business.features.slice(0, 3)
+        ...((business as any).features || []).slice(0, 3)
       ].filter(Boolean).join(', '),
       
       authors: [{ name: 'The Lawless Directory' }],
@@ -48,17 +48,17 @@ export async function generateMetadata({ params }: BusinessPageProps): Promise<M
       openGraph: {
         title: business.name,
         description,
-        type: 'business.business',
+        type: 'website',
         url: businessUrl,
         siteName: 'The Lawless Directory',
         images: [
           {
-            url: business.primaryImage || '/placeholder-business.jpg',
+            url: (business as any).primary_image || (business as any).primaryImage || '/placeholder-business.jpg',
             width: 1200,
             height: 630,
-            alt: `${business.name} - ${business.category}`
+            alt: `${business.name} - ${(business as any).category || 'Business'}`
           },
-          ...(business.images?.slice(0, 3).map(img => ({
+          ...((business as any).images?.slice(0, 3).map((img: any) => ({
             url: img,
             width: 800,
             height: 600,
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: BusinessPageProps): Promise<M
         card: 'summary_large_image',
         title: business.name,
         description,
-        images: [business.primaryImage || '/placeholder-business.jpg'],
+        images: [(business as any).primary_image || (business as any).primaryImage || '/placeholder-business.jpg'],
         creator: '@LawlessDirectory'
       },
 
@@ -84,21 +84,21 @@ export async function generateMetadata({ params }: BusinessPageProps): Promise<M
       },
 
       other: {
-        'business:contact_data:street_address': business.address.street,
-        'business:contact_data:locality': business.address.city,
-        'business:contact_data:region': business.address.state,
-        'business:contact_data:postal_code': business.address.zipCode,
-        'business:contact_data:country_name': business.address.country,
+        'business:contact_data:street_address': (business as any).street_address || (business as any).address?.street,
+        'business:contact_data:locality': (business as any).city || (business as any).address?.city,
+        'business:contact_data:region': (business as any).state || (business as any).address?.state,
+        'business:contact_data:postal_code': (business as any).zip_code || (business as any).address?.zipCode,
+        'business:contact_data:country_name': (business as any).country || (business as any).address?.country,
         ...(business.phone && { 'business:contact_data:phone_number': business.phone }),
         ...(business.website && { 'business:contact_data:website': business.website }),
       },
 
       robots: {
-        index: business.isActive,
-        follow: business.isActive,
+        index: (business as any).is_active || (business as any).isActive || true,
+        follow: (business as any).is_active || (business as any).isActive || true,
         googleBot: {
-          index: business.isActive,
-          follow: business.isActive,
+          index: (business as any).is_active || (business as any).isActive || true,
+          follow: (business as any).is_active || (business as any).isActive || true,
           'max-video-preview': -1,
           'max-image-preview': 'large',
           'max-snippet': -1
@@ -130,7 +130,7 @@ export async function generateStaticParams() {
 }
 
 export default async function BusinessPage({ params }: BusinessPageProps) {
-  let business: Business | null = null
+  let business: any = null
   
   try {
     business = await getBusinessBySlug(params.slug)

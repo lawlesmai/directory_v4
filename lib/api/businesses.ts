@@ -285,14 +285,14 @@ export const businessApi = {
             radius_meters: radius,
             limit_count: limit,
             offset_count: offset
-          });
+          } as any);
 
         if (searchError) {
           throw new Error(`Search failed: ${searchError.message}`);
         }
 
         return {
-          data: searchResults?.map((result: SearchBusinessResult) => ({
+          data: ((searchResults as SearchBusinessResult[] | null)?.map((result: SearchBusinessResult) => ({
             ...result,
             is_premium: result.is_premium,
             is_verified: result.is_verified,
@@ -300,9 +300,9 @@ export const businessApi = {
               avg_rating: result.rating,
               total_reviews: result.review_count
             }
-          })) || [],
-          total: searchResults?.length || 0,
-          hasMore: (searchResults?.length || 0) >= limit
+          })) || []) as unknown as EnhancedBusiness[],
+          total: (searchResults as any)?.length || 0,
+          hasMore: ((searchResults as any)?.length || 0) >= limit
         };
       }
 
@@ -320,14 +320,14 @@ export const businessApi = {
             category_filter: category || null,
             limit_count: limit,
             offset_count: offset
-          });
+          } as any);
 
         if (nearbyError) {
           throw new Error(`Nearby search failed: ${nearbyError.message}`);
         }
 
         return {
-          data: nearbyResults?.map((result: NearbyBusinessResult) => ({
+          data: ((nearbyResults as NearbyBusinessResult[] | null)?.map((result: NearbyBusinessResult) => ({
             ...result,
             distance: result.distance_meters,
             is_premium: result.is_premium,
@@ -336,9 +336,9 @@ export const businessApi = {
               avg_rating: result.rating,
               total_reviews: result.review_count
             }
-          })) || [],
-          total: nearbyResults?.length || 0,
-          hasMore: (nearbyResults?.length || 0) >= limit
+          })) || []) as unknown as EnhancedBusiness[],
+          total: (nearbyResults as any)?.length || 0,
+          hasMore: ((nearbyResults as any)?.length || 0) >= limit
         };
       }
 
@@ -368,7 +368,7 @@ export const businessApi = {
       }
 
       // Enhance data with computed fields
-      const enhancedData: EnhancedBusiness[] = (data || []).map(business => ({
+      const enhancedData: EnhancedBusiness[] = (data || []).map((business: any) => ({
         ...business,
         is_premium: business.subscription_tier !== 'free',
         is_verified: business.verification_status === 'verified',
@@ -403,23 +403,23 @@ export const businessApi = {
       const { data, error } = await supabase
         .rpc('get_business_details', {
           business_slug: slug
-        });
+        } as any);
 
       if (error) {
         throw new Error(`Failed to fetch business: ${error.message}`);
       }
 
-      if (!data || data.length === 0) {
+      if (!data || (data as any).length === 0) {
         return {
           data: null,
           error: 'Business not found'
         };
       }
 
-      const businessDetails = data[0] as BusinessDetailsResult;
+      const businessDetails = (data as any)[0] as BusinessDetailsResult;
       
       return {
-        data: businessDetails.business as EnhancedBusiness
+        data: businessDetails.business as unknown as EnhancedBusiness
       };
 
     } catch (error) {
@@ -463,14 +463,14 @@ export const businessApi = {
         .rpc('get_search_suggestions', {
           partial_query: query,
           suggestion_limit: limit
-        });
+        } as any);
 
       if (error) {
         throw new Error(`Search suggestions failed: ${error.message}`);
       }
 
       // Extract suggestion text from the structured response
-      const suggestions = (suggestionsData || []).map((item: any) => item.suggestion);
+      const suggestions = ((suggestionsData as any) || []).map((item: any) => item.suggestion);
       
       return {
         data: suggestions
@@ -491,7 +491,7 @@ export const businessApi = {
 
         if (fallbackError) throw fallbackError;
 
-        const suggestions = data?.map(business => business.name) || [];
+        const suggestions = data?.map((business: any) => business.name) || [];
         return { data: suggestions };
         
       } catch (fallbackError) {
@@ -571,7 +571,7 @@ export const businessApi = {
       }
 
       // Enhance data with computed fields
-      const enhancedData: EnhancedBusiness[] = (data || []).map(business => ({
+      const enhancedData: EnhancedBusiness[] = (data || []).map((business: any) => ({
         ...business,
         is_premium: business.subscription_tier !== 'free',
         is_verified: business.verification_status === 'verified',
@@ -689,7 +689,7 @@ export const getBusinessBySlug = async (slug: string): Promise<Business | null> 
       parkingAvailable: true,
       createdAt: business.created_at,
       updatedAt: business.updated_at
-    };
+    } as unknown as Business;
   }
 
   try {
@@ -751,7 +751,7 @@ export const getBusinessBySlug = async (slug: string): Promise<Business | null> 
       parkingAvailable: true,
       createdAt: business.created_at,
       updatedAt: business.updated_at
-    };
+    } as unknown as Business;
   } catch (error) {
     console.error('Error fetching business by slug:', error);
     return null;
@@ -770,7 +770,7 @@ export const getBusinessesByCategory = async (categorySlug: string): Promise<Bus
     }
 
     // Convert EnhancedBusiness[] to Business[]
-    return response.data.map(business => ({
+    return response.data.map((business: any) => ({
       id: business.id,
       name: business.name,
       category: business.category?.name || 'General',
@@ -816,7 +816,7 @@ export const getBusinessesByCategory = async (categorySlug: string): Promise<Bus
       parkingAvailable: true,
       createdAt: business.created_at,
       updatedAt: business.updated_at
-    }));
+    })) as unknown as Business[];
   } catch (error) {
     console.error('Error fetching businesses by category:', error);
     return [];
@@ -847,7 +847,7 @@ export const getAllBusinessSlugs = async (): Promise<Array<{ category: string; s
       throw new Error(`Failed to fetch business slugs: ${error.message}`);
     }
 
-    return (data || []).map(business => ({
+    return (data || []).map((business: any) => ({
       category: business.category?.slug || 'general',
       slug: business.slug
     }));
@@ -862,7 +862,7 @@ export const businessServerApi = {
   getBusinesses: businessApi.getBusinesses,
   getBusinessBySlug,
   getFeaturedBusinesses: businessApi.getFeaturedBusinesses,
-  getBusinessCategories: businessApi.getBusinessCategories,
+  getBusinessCategories: businessApi.getCategories,
   getBusinessesByCategory,
   getAllBusinessSlugs,
 };

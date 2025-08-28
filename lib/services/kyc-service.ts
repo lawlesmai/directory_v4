@@ -5,7 +5,7 @@
  */
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Database } from '@/types/supabase';
+import { Database } from '@/lib/supabase/database.types';
 import { z } from 'zod';
 
 // Types
@@ -511,6 +511,7 @@ export class KYCService {
     reason?: string;
     verificationRequired?: boolean;
     existingVerificationId?: string;
+    error?: string;
   }> {
     try {
       // Check if user has completed KYC for this business

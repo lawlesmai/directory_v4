@@ -169,7 +169,7 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
         
         {business.badges && business.badges.length > 0 && (
           <div className="trust-indicators flex flex-wrap gap-2">
-            {business.badges.slice(0, 3).map((badge, index) => (
+            {business.badges.slice(0, 3).map((badge: string, index: number) => (
               <span
                 key={index}
                 className="trust-badge inline-flex items-center px-2 py-1 bg-teal-20 text-teal-secondary text-xs font-medium rounded-full backdrop-blur-sm"

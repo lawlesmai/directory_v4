@@ -38,6 +38,7 @@ import {
   getFieldValidationState 
 } from './validations';
 import type { RegisterFormProps, RegistrationStep } from './types';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({
   onSuccess,
@@ -100,7 +101,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       emailVerificationCode: '',
       termsAccepted: false,
       privacyAccepted: false,
-      marketingConsent: false
+      subscribeNewsletter: false
     }
   });
 
@@ -169,11 +170,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       const mockUser = {
         id: 'new-user-id',
         email: completeData.email,
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        app_metadata: {},
         user_metadata: {
           full_name: `${completeData.firstName} ${completeData.lastName}`,
           business_type: completeData.businessType
         }
-      };
+      } as SupabaseUser;
 
       onSuccess?.(mockUser);
     } catch (error: any) {
@@ -623,17 +627,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
             <label className="flex items-start gap-3 cursor-pointer">
               <div className="relative mt-1">
                 <input
-                  {...register('marketingConsent')}
+                  {...register('subscribeNewsletter')}
                   type="checkbox"
                   className="sr-only"
                 />
                 <div className={cn(
                   'w-4 h-4 rounded border-2 flex items-center justify-center transition-colors',
-                  watch('marketingConsent') 
+                  watch('subscribeNewsletter') 
                     ? 'bg-teal-primary border-teal-primary' 
                     : 'border-sage/30 hover:border-sage/50'
                 )}>
-                  {watch('marketingConsent') && <Check className="w-3 h-3 text-cream" />}
+                  {watch('subscribeNewsletter') && <Check className="w-3 h-3 text-cream" />}
                 </div>
               </div>
               <div className="text-sm text-sage/70">

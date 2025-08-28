@@ -8,7 +8,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { hashPassword, verifyPassword, validatePasswordStrength } from '@/lib/security/server'
-import { WebFetch } from '@/lib/utils/web-fetch'
 
 export interface PasswordPolicy {
   // NIST 800-63B Requirements
@@ -295,12 +294,12 @@ export class PasswordPolicyEngine {
       // Add new entry
       await this.supabase
         .from('user_password_history')
-        .insert({
+        .insert([{
           user_id: userId,
           password_hash: passwordHash,
           algorithm,
           created_at: new Date().toISOString()
-        })
+        }])
 
       // Clean up old entries (keep only last 15 for safety margin)
       const { data: oldEntries } = await this.supabase
@@ -311,7 +310,7 @@ export class PasswordPolicyEngine {
         .range(15, 1000)
 
       if (oldEntries && oldEntries.length > 0) {
-        const idsToDelete = oldEntries.map(entry => entry.id)
+        const idsToDelete = oldEntries.map((entry: any) => entry.id)
         await this.supabase
           .from('user_password_history')
           .delete()

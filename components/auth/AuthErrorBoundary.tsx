@@ -29,7 +29,7 @@ export enum AuthErrorType {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR'
 }
 
-export interface AuthError extends Error {
+interface AuthBoundaryError extends Error {
   type?: AuthErrorType;
   code?: string;
   status?: number;
@@ -41,17 +41,17 @@ export interface AuthError extends Error {
 // Error boundary state
 interface ErrorBoundaryState {
   hasError: boolean;
-  error: AuthError | null;
+  error: AuthBoundaryError | null;
   errorInfo: ErrorInfo | null;
   retryCount: number;
   isRetrying: boolean;
 }
 
-// Props for AuthErrorBoundary
+// Props for AuthBoundaryErrorBoundary
 interface AuthErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
-  onError?: (error: AuthError, errorInfo: ErrorInfo) => void;
+  onError?: (error: AuthBoundaryError, errorInfo: ErrorInfo) => void;
   onRetry?: () => void;
   onReset?: () => void;
   maxRetries?: number;
@@ -60,8 +60,8 @@ interface AuthErrorBoundaryProps {
 }
 
 // Error classification utility
-const classifyError = (error: Error): AuthError => {
-  const authError = error as AuthError;
+const classifyError = (error: Error): AuthBoundaryError => {
+  const authError = error as AuthBoundaryError;
   
   // If already classified, return as-is
   if (authError.type) {
@@ -108,7 +108,7 @@ const classifyError = (error: Error): AuthError => {
 
 // Error details component
 const ErrorDetails: React.FC<{
-  error: AuthError;
+  error: AuthBoundaryError;
   errorInfo: ErrorInfo;
   isVisible: boolean;
   onToggle: () => void;
@@ -178,7 +178,7 @@ const ErrorDetails: React.FC<{
 
 // Error message component based on error type
 const ErrorMessage: React.FC<{
-  error: AuthError;
+  error: AuthBoundaryError;
   className?: string;
 }> = ({ error, className }) => {
   const getErrorConfig = (type: AuthErrorType) => {
@@ -278,7 +278,7 @@ const ErrorMessage: React.FC<{
 
 // Action buttons component
 const ErrorActions: React.FC<{
-  error: AuthError;
+  error: AuthBoundaryError;
   retryCount: number;
   maxRetries: number;
   isRetrying: boolean;
@@ -360,7 +360,7 @@ const ErrorActions: React.FC<{
   );
 };
 
-// Main AuthErrorBoundary class component
+// Main AuthBoundaryErrorBoundary class component
 export class AuthErrorBoundary extends Component<AuthErrorBoundaryProps, ErrorBoundaryState> {
   private retryTimeoutId: NodeJS.Timeout | null = null;
 
@@ -396,7 +396,7 @@ export class AuthErrorBoundary extends Component<AuthErrorBoundaryProps, ErrorBo
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('AuthErrorBoundary caught an error:', authError);
+      console.error('AuthBoundaryErrorBoundary caught an error:', authError);
       console.error('Error info:', errorInfo);
     }
 
@@ -519,12 +519,12 @@ export class AuthErrorBoundary extends Component<AuthErrorBoundaryProps, ErrorBo
 
 // Hook for manually triggering auth errors
 export const useAuthErrorHandler = () => {
-  const throwAuthError = React.useCallback((
+  const throwAuthBoundaryError = React.useCallback((
     message: string,
     type: AuthErrorType = AuthErrorType.UNKNOWN_ERROR,
-    options: Partial<AuthError> = {}
+    options: Partial<AuthBoundaryError> = {}
   ) => {
-    const error: AuthError = new Error(message) as AuthError;
+    const error: AuthBoundaryError = new Error(message) as AuthBoundaryError;
     error.type = type;
     error.timestamp = new Date();
     Object.assign(error, options);
@@ -548,7 +548,7 @@ export const useAuthErrorHandler = () => {
   }, []);
 
   return {
-    throwAuthError,
+    throwAuthBoundaryError,
     handleAsyncError
   };
 };

@@ -14,9 +14,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Chrome,
-  Safari,
-  Firefox,
-  Edge,
+  Globe as Safari,
+  Globe2 as Firefox,
+  Compass as Edge,
   MoreVertical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

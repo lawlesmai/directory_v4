@@ -147,7 +147,7 @@ export function withAuth<TInput, TOutput>(
           p_action: `action:${action.name}`,
           p_max_attempts: maxAttempts,
           p_window_minutes: windowMinutes
-        })
+        } as any)
 
         if (!rateLimitOk) {
           return {
@@ -210,10 +210,20 @@ export function withValidation<TInput, TOutput>(
       return await action(validatedInput, context)
     } catch (error) {
       if (error instanceof z.ZodError) {
+        const fieldErrors = error.flatten().fieldErrors
+        const cleanedFieldErrors: Record<string, string[]> = {}
+        
+        // Filter out undefined values
+        Object.entries(fieldErrors).forEach(([key, value]) => {
+          if (value) {
+            cleanedFieldErrors[key] = value
+          }
+        })
+        
         return {
           success: false,
           error: 'Validation failed',
-          fieldErrors: error.flatten().fieldErrors
+          fieldErrors: cleanedFieldErrors
         }
       }
       
@@ -631,5 +641,4 @@ export const revokeAllOtherSessions = withAuth(
   }
 )
 
-// Export types for use in other modules
-export type { ActionResult, ActionContext, AuthWrapperOptions }
+// Types are already exported via their interface declarations above

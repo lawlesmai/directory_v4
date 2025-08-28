@@ -130,9 +130,9 @@ export class OAuthSecurityValidator {
           p_action: action,
           p_max_attempts: this.getRateLimitMax(action),
           p_window_minutes: this.getRateLimitWindow(action)
-        })
+        } as any)
 
-      if (error || !data || data.length === 0) {
+      if (error || !data || (data as any).length === 0) {
         console.error('Rate limit check failed:', error)
         // Fail open for now, but log the incident
         await this.reportSecurityIncident({
@@ -152,7 +152,7 @@ export class OAuthSecurityValidator {
         }
       }
 
-      const result = data[0]
+      const result = (data as any)[0]
       return {
         allowed: result.allowed,
         attemptsRemaining: Math.max(0, this.getRateLimitMax(action) - result.current_attempts),
@@ -222,11 +222,16 @@ export class OAuthSecurityValidator {
         riskLevel = riskLevel === 'low' ? 'medium' : riskLevel
       }
 
+      // Additional check for excessive failed attempts (critical threshold)
+      if (!error && recentFailures && recentFailures.length >= 10) {
+        riskLevel = 'critical'
+      }
+
       return {
         allowed: riskLevel !== 'critical',
         riskLevel,
         reasons,
-        actionRequired: riskLevel === 'high' ? 'mfa_required' : undefined
+        actionRequired: riskLevel === 'high' ? 'mfa_required' : riskLevel === 'critical' ? 'block' : undefined
       }
 
     } catch (error) {
@@ -271,6 +276,23 @@ export class OAuthSecurityValidator {
       riskLevel = 'high'
     }
 
+    // Check for malicious/attack tools (critical risk)
+    const maliciousPatterns = [
+      /sqlmap/i,
+      /nikto/i,
+      /nessus/i,
+      /burp/i,
+      /zap/i,
+      /metasploit/i,
+      /havij/i
+    ]
+
+    const isMalicious = maliciousPatterns.some(pattern => pattern.test(userAgent))
+    if (isMalicious) {
+      reasons.push('Malicious security tool detected')
+      riskLevel = 'critical'
+    }
+
     // Check for very old browsers (potential security risk)
     const oldBrowserPatterns = [
       /MSIE [1-9]\./,
@@ -288,7 +310,7 @@ export class OAuthSecurityValidator {
       allowed: riskLevel !== 'critical',
       riskLevel,
       reasons,
-      actionRequired: riskLevel === 'high' ? 'admin_review' : undefined
+      actionRequired: riskLevel === 'high' ? 'admin_review' : riskLevel === 'critical' ? 'block' : undefined
     }
   }
 
@@ -318,7 +340,7 @@ export class OAuthSecurityValidator {
 
         if (recentSwitches && recentSwitches.length > 2) {
           const uniqueProviders = new Set(
-            recentSwitches.map(log => log.event_data?.provider).filter(Boolean)
+            recentSwitches.map((log: any) => log.event_data?.provider).filter(Boolean)
           )
           if (uniqueProviders.size > 2) {
             reasons.push('Rapid OAuth provider switching detected')
@@ -343,7 +365,7 @@ export class OAuthSecurityValidator {
           
         } catch {
           reasons.push('Malformed OAuth state parameter')
-          riskLevel = 'high'
+          riskLevel = 'critical' // Critical because it indicates potential tampering
         }
       }
 
@@ -361,7 +383,7 @@ export class OAuthSecurityValidator {
         allowed: riskLevel !== 'critical',
         riskLevel,
         reasons,
-        actionRequired: riskLevel === 'high' ? 'mfa_required' : undefined
+        actionRequired: riskLevel === 'high' ? 'mfa_required' : riskLevel === 'critical' ? 'block' : undefined
       }
 
     } catch (error) {
@@ -397,7 +419,7 @@ export class OAuthSecurityValidator {
 
       if (recentLogins && recentLogins.length > 0) {
         const currentCountry = metadata.country_code
-        const recentCountries = new Set(recentLogins.map(login => login.country_code))
+        const recentCountries = new Set(recentLogins.map((login: any) => login.country_code))
         
         // Check for new country
         if (currentCountry && !recentCountries.has(currentCountry)) {
@@ -409,6 +431,13 @@ export class OAuthSecurityValidator {
           if (highRiskCountries.includes(currentCountry)) {
             reasons.push('Login from high-risk country')
             riskLevel = 'high'
+          }
+
+          // Check for countries under sanctions (critical risk)
+          const sanctionedCountries = ['KP', 'IR'] // Simplified example
+          if (sanctionedCountries.includes(currentCountry)) {
+            reasons.push('Login from sanctioned country')
+            riskLevel = 'critical'
           }
         }
 
@@ -426,7 +455,7 @@ export class OAuthSecurityValidator {
         allowed: riskLevel !== 'critical',
         riskLevel,
         reasons,
-        actionRequired: riskLevel === 'high' ? 'mfa_required' : undefined
+        actionRequired: riskLevel === 'high' ? 'mfa_required' : riskLevel === 'critical' ? 'block' : undefined
       }
 
     } catch (error) {
@@ -446,7 +475,7 @@ export class OAuthSecurityValidator {
     try {
       await this.supabase
         .from('oauth_security_incidents')
-        .insert({
+        .insert([{
           incident_type: incident.type,
           severity: incident.severity,
           description: incident.description,
@@ -458,7 +487,7 @@ export class OAuthSecurityValidator {
           auto_blocked: incident.autoResolved || false,
           admin_notified: incident.severity === 'critical',
           detected_at: new Date().toISOString()
-        })
+        }])
 
       // Auto-notify admins for critical incidents
       if (incident.severity === 'critical') {
@@ -561,7 +590,7 @@ export class OAuthSecurityValidator {
     checks: any[]
   }): Promise<void> {
     try {
-      await this.(supabase as any).from('auth_audit_logs').insert({
+      await this.supabase.from('auth_audit_logs').insert([{
         event_type: 'oauth_security_check',
         event_category: 'security',
         user_id: data.userId,
@@ -576,7 +605,7 @@ export class OAuthSecurityValidator {
         },
         ip_address: data.ipAddress,
         user_agent: data.userAgent
-      })
+      }])
     } catch (error) {
       console.error('Failed to log security check:', error)
     }

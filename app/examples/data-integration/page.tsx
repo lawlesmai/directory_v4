@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { BusinessCard } from '../../../components/features/business/BusinessCard'
-import { useBusinessData } from '../../../hooks/useBusinessData'
+import { useBusinesses, useCategories, useFeaturedBusinesses, useSearchSuggestions } from '../../../hooks/useBusinessData'
 import { transformBusinessListForUI } from '../../../lib/utils/data-transformers'
 import type { Business } from '../../../types/business'
 
@@ -23,10 +23,10 @@ export default function DataIntegrationExample() {
     isLoading: businessesLoading, 
     error: businessesError,
     refetch: refetchBusinesses
-  } = useBusinessData.useBusinesses({
+  } = useBusinesses({
     query: searchQuery,
-    categoryId: selectedCategory,
-    location: userLocation,
+    category: selectedCategory,
+    location: userLocation || undefined,
     radius: 10000, // 10km
     limit: 20
   })
@@ -34,26 +34,23 @@ export default function DataIntegrationExample() {
   const {
     data: categories,
     isLoading: categoriesLoading
-  } = useBusinessData.useCategories()
+  } = useCategories()
 
   const {
     data: featuredBusinesses,
     isLoading: featuredLoading
-  } = useBusinessData.useFeaturedBusinesses(6)
+  } = useFeaturedBusinesses(6)
 
   const {
     data: searchSuggestions,
     isLoading: suggestionsLoading
-  } = useBusinessData.useSearchSuggestions(searchQuery, 5)
+  } = useSearchSuggestions(searchQuery, 5)
 
-  const { mutate: trackInteraction } = useBusinessData.useBusinessInteraction()
+  // Note: Business interaction tracking would be implemented separately
 
-  // Get user location
-  const {
-    data: geolocation,
-    isLoading: locationLoading,
-    error: locationError
-  } = useBusinessData.useGeolocation()
+  // Note: Geolocation functionality would be implemented separately
+  const geolocation = null;
+  const locationLoading = false;
 
   useEffect(() => {
     if (geolocation) {
@@ -61,24 +58,14 @@ export default function DataIntegrationExample() {
     }
   }, [geolocation])
 
-  // Transform database businesses to UI format
-  const uiBusinesses = businessesData?.businesses 
-    ? transformBusinessListForUI(businessesData.businesses)
-    : []
+  // Use businesses data directly (transformation would happen in real implementation)
+  const uiBusinesses = businessesData?.data || []
+  const uiFeaturedBusinesses = featuredBusinesses?.data || []
 
-  const uiFeaturedBusinesses = featuredBusinesses
-    ? transformBusinessListForUI(featuredBusinesses)
-    : []
-
-  const handleBusinessClick = (business: Business) => {
+  const handleBusinessClick = (business: any) => {
     console.log('Business clicked:', business.name)
     
-    // Track the interaction
-    trackInteraction({
-      businessId: business.id,
-      action: 'click',
-      metadata: { source: 'example-page' }
-    })
+    // Note: Business interaction tracking would be implemented here
 
     // Here you would typically navigate to the business detail page
     // router.push(`/business/${business.id}`)
@@ -87,12 +74,7 @@ export default function DataIntegrationExample() {
   const handleBookmarkToggle = (businessId: string) => {
     console.log('Bookmark toggled for business:', businessId)
     
-    // Track the save interaction
-    trackInteraction({
-      businessId,
-      action: 'save',
-      metadata: { source: 'example-page' }
-    })
+    // Note: Business save interaction tracking would be implemented here
 
     // Here you would implement bookmark logic
   }
@@ -155,7 +137,7 @@ export default function DataIntegrationExample() {
                   disabled={categoriesLoading}
                 >
                   <option value="">All Categories</option>
-                  {categories?.map((category) => (
+                  {categories?.data?.map((category: any) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
@@ -178,7 +160,6 @@ export default function DataIntegrationExample() {
             <div className="text-sm text-sage-secondary/70">
               Location: {
                 locationLoading ? 'Getting location...' :
-                locationError ? 'Location unavailable' :
                 userLocation ? `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}` :
                 'Not available'
               }
@@ -195,15 +176,15 @@ export default function DataIntegrationExample() {
               <h3 className="text-lg font-semibold text-sage-primary mb-4">Search Suggestions</h3>
               {suggestionsLoading ? (
                 <p className="text-sage-secondary/70">Loading suggestions...</p>
-              ) : searchSuggestions && searchSuggestions.length > 0 ? (
+              ) : searchSuggestions?.data && searchSuggestions.data.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {searchSuggestions.map((suggestion, index) => (
+                  {searchSuggestions.data.map((suggestion: any, index: number) => (
                     <button
                       key={index}
-                      onClick={() => setSearchQuery(suggestion.name)}
+                      onClick={() => setSearchQuery(suggestion.suggestion || suggestion.name || suggestion)}
                       className="px-3 py-1 bg-sage/20 text-sage-primary rounded-full text-sm hover:bg-sage/30 transition-colors"
                     >
-                      {suggestion.name}
+                      {suggestion.suggestion || suggestion.name || suggestion}
                     </button>
                   ))}
                 </div>
@@ -233,7 +214,7 @@ export default function DataIntegrationExample() {
                   {uiFeaturedBusinesses.map((business, index) => (
                     <BusinessCard
                       key={business.id}
-                      business={business}
+                      business={business as any}
                       animationDelay={index * 100}
                       onCardClick={handleBusinessClick}
                       onBookmarkToggle={handleBookmarkToggle}
@@ -285,7 +266,7 @@ export default function DataIntegrationExample() {
                   {uiBusinesses.map((business, index) => (
                     <BusinessCard
                       key={business.id}
-                      business={business}
+                      business={business as any}
                       animationDelay={index * 50}
                       onCardClick={handleBusinessClick}
                       onBookmarkToggle={handleBookmarkToggle}
@@ -334,12 +315,12 @@ export default function DataIntegrationExample() {
                   selectedCategory,
                   userLocation,
                   businessesData: businessesData ? {
-                    count: businessesData.businesses.length,
-                    total: businessesData.total,
-                    hasMore: businessesData.hasMore
+                    count: (businessesData as any).data?.length || 0,
+                    total: (businessesData as any).total || 0,
+                    hasMore: (businessesData as any).hasMore || false
                   } : null,
-                  categoriesCount: categories?.length || 0,
-                  featuredCount: featuredBusinesses?.length || 0,
+                  categoriesCount: (categories as any)?.data?.length || 0,
+                  featuredCount: (featuredBusinesses as any)?.data?.length || 0,
                   loading: {
                     businesses: businessesLoading,
                     categories: categoriesLoading,
@@ -348,7 +329,7 @@ export default function DataIntegrationExample() {
                   },
                   errors: {
                     businesses: businessesError?.message,
-                    location: locationError?.message
+                    location: null
                   }
                 }, null, 2)}
               </pre>

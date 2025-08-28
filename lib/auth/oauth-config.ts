@@ -151,7 +151,7 @@ export class OAuthConfigManager {
         return []
       }
 
-      return (data?.map(p => p.provider_name) || []) as OAuthProvider[]
+      return (data?.map((p: any) => p.provider_name) || []) as OAuthProvider[]
     } catch (error) {
       console.error('Error getting enabled OAuth providers:', error)
       return []
