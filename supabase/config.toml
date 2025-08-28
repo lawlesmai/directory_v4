@@ -1,3 +1,6 @@
+# A string used to distinguish different Supabase projects on the same host. Defaults to the working directory name.
+project_id = "lawless-directory"
+
 [api]
 enabled = true
 port = 54321
@@ -5,12 +8,14 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
-[graphql]
-enabled = true
+[db]
 port = 54322
-schemas = ["public", "graphql_public"]
-extra_search_path = ["public", "extensions"]
-max_rows = 1000
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost:54321"
 
 [inbucket]
 enabled = true
@@ -20,25 +25,7 @@ pop3_port = 54326
 
 [realtime]
 enabled = true
-ip_version = "ipv4"
-port = 54323
-secure_channels = false
-
-[studio]
-enabled = true
-port = 54323
-api_url = "http://localhost:54321"
-
-# A string used to distinguish different Supabase projects on the same host. Defaults to the working directory name.
-project_id = "lawless-directory"
-
-[database]
-# Port to use for the local database URL.
-port = 54322
-# The database major version to use. This has to be the same as your remote database's. Run `SHOW server_version;` on the remote database to check.
-major_version = 15
-# Max file size for CSV imports (in MB)
-csv_import_max_file_size = 32
+ip_version = "IPv4"
 
 [auth]
 enabled = true
@@ -72,14 +59,3 @@ redirect_uri = ""
 # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
 # or any other third-party OIDC providers.
 url = ""
-
-[edge_runtime]
-enabled = true
-# Configure one of the supported poolers. The connection string is then constructed from the passed in
-# environment variables like VW_PASSWORD, VW_HOST, VW_PORT, etc.
-# If no pooler is configured and VW_PASSWORD is set, Vitagess connection string will be used.
-# 1. Supported poolers:
-#   - vitagess: "host={VW_HOST} port={VW_PORT} user=postgres password={VW_PASSWORD} sslmode=require"
-#   - pgbouncer: "host={PGBOUNCER_HOST} port={PGBOUNCER_PORT} user=postgres password={PGBOUNCER_PASSWORD}"
-[experimental.edge_runtime.pooler]
-enabled = false

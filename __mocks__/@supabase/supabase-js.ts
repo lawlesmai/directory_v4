@@ -1,10 +1,8 @@
-import { vi } from 'vitest';
-
-export const createClient = vi.fn(() => ({
-  from: vi.fn(() => ({
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        single: vi.fn(() => ({
+export const createClient = jest.fn(() => ({
+  from: jest.fn(() => ({
+    select: jest.fn(() => ({
+      eq: jest.fn(() => ({
+        single: jest.fn(() => ({
           data: {
             id: 'mock-user-id',
             email: 'admin@example.com',
@@ -19,12 +17,12 @@ export const createClient = vi.fn(() => ({
     }))
   })),
   auth: {
-    getSession: vi.fn(() => ({
+    getSession: jest.fn(() => ({
       data: { session: { user: { id: 'mock-user-id' } } },
       error: null
     })),
-    onAuthStateChange: vi.fn(() => ({
-      data: { subscription: { unsubscribe: vi.fn() } }
+    onAuthStateChange: jest.fn(() => ({
+      data: { subscription: { unsubscribe: jest.fn() } }
     }))
   }
 }));
